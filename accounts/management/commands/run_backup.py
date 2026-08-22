@@ -20,7 +20,7 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 
 from accounts.models import CustomUser, NotificationSettings, Role
-from accounts import notifications
+from accounts import audit, notifications
 
 RETENTION_DAYS = 30
 
@@ -73,8 +73,20 @@ class Command(BaseCommand):
             self._notify_admins(db_result, project_result, errors, timestamp)
 
         if errors:
+            audit.log(
+                action='BACKUP_FAILED',
+                target_type='Backup',
+                target_id=timestamp,
+                detail='; '.join(errors)[:255],
+            )
             self.stderr.write(self.style.ERROR(f"Backup finished with {len(errors)} error(s)."))
         else:
+            audit.log(
+                action='BACKUP_SUCCESS',
+                target_type='Backup',
+                target_id=timestamp,
+                detail='Database and project backups completed successfully.',
+            )
             self.stdout.write(self.style.SUCCESS("Backup finished successfully."))
 
     def _dump_database(self, db_backup_dir, timestamp):
