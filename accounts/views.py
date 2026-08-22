@@ -316,6 +316,24 @@ def approve_user(request, user_id):
         target.approval_status = ApprovalStatus.APPROVED
         target.save()
         audit.log(actor=request.user, action='USER_APPROVED', target_type='User', target_id=target.id, detail=target.email, request=request)
+
+        settings_obj = NotificationSettings.get_solo()
+        subject = 'Your DailyLedger account has been approved'
+        body = (
+            f'Hello {target.full_name or target.email},\n\n'
+            'Your DailyLedger account has been approved by the administrator. '
+            'You can now log in and use the system.\n\n'
+            'Regards,\n'
+            'DailyLedger'
+        )
+        notifications.send_email(
+            settings_obj,
+            target.email,
+            subject,
+            body,
+            actor=request.user,
+        )
+
         messages.success(request, f'{target.email} has been approved.')
     return redirect('accounts:user_approvals')
 
