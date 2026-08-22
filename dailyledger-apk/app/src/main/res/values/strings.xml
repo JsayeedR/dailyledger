@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">DailyLedger</string>
+    <string name="error_message">Couldn\'t reach DailyLedger. Check your internet connection and try again.</string>
+    <string name="retry">Retry</string>
+</resources>

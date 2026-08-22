@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="ledger_primary">#1E293B</color>
+    <color name="ledger_accent">#22C55E</color>
+    <color name="ledger_background">#FFFFFF</color>
+</resources>
