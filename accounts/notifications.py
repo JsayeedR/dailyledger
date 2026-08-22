@@ -2,10 +2,18 @@ import json
 import urllib.request
 import urllib.error
 from django.core.mail import EmailMessage, get_connection
+from . import audit
 
 
-def send_email(settings_obj, to_email, subject, body):
+def send_email(settings_obj, to_email, subject, body, actor=None):
     if not settings_obj.is_email_configured():
+        audit.log(
+            actor=actor,
+            action='EMAIL_FAILED',
+            target_type='Email',
+            target_id=to_email,
+            detail='Email is not configured.',
+        )
         return False, 'Email is not configured yet.'
     try:
         connection = get_connection(
@@ -26,31 +34,114 @@ def send_email(settings_obj, to_email, subject, body):
             reply_to=[reply_to],
         )
         msg.send()
+
+        audit.log(
+            actor=actor,
+            action='EMAIL_SENT',
+            target_type='Email',
+            target_id=to_email,
+            detail=f'Email sent: {subject}'[:255],
+        )
+
         return True, 'Sent successfully.'
     except Exception as e:
+        audit.log(
+            actor=actor,
+            action='EMAIL_FAILED',
+            target_type='Email',
+            target_id=to_email,
+            detail=f'Email failed: {str(e)}'[:255],
+        )
         return False, str(e)
 
 
-def send_telegram(settings_obj, chat_id, text):
+def send_telegram(settings_obj, chat_id, text, actor=None):
     if not settings_obj.is_telegram_configured():
+        audit.log(
+            actor=actor,
+            action='TELEGRAM_FAILED',
+            target_type='Telegram',
+            target_id=chat_id,
+            detail='Telegram bot is not configured.',
+        )
         return False, 'Telegram bot is not configured yet.'
     if not chat_id:
+        audit.log(
+            actor=actor,
+            action='TELEGRAM_FAILED',
+            target_type='Telegram',
+            target_id='',
+            detail='No Telegram Chat ID provided.',
+        )
         return False, 'No Telegram Chat ID provided for this user.'
+
     token = settings_obj.telegram_bot_token
     url = f'https://api.telegram.org/bot{token}/sendMessage'
     data = json.dumps({'chat_id': chat_id, 'text': text}).encode('utf-8')
-    req = urllib.request.Request(url, data=data, headers={'Content-Type': 'application/json'})
+    req = urllib.request.Request(
+        url,
+        data=data,
+        headers={'Content-Type': 'application/json'},
+    )
+
     try:
         with urllib.request.urlopen(req, timeout=10) as resp:
             result = json.loads(resp.read().decode())
+
             if result.get('ok'):
+                audit.log(
+                    actor=actor,
+                    action='TELEGRAM_SENT',
+                    target_type='Telegram',
+                    target_id=chat_id,
+                    detail='Telegram message sent successfully.',
+                )
                 return True, 'Sent successfully.'
-            return False, result.get('description', 'Unknown Telegram API error.')
+
+            detail = result.get('description', 'Unknown Telegram API error.')
+            audit.log(
+                actor=actor,
+                action='TELEGRAM_FAILED',
+                target_type='Telegram',
+                target_id=chat_id,
+                detail=f'Telegram failed: {detail}'[:255],
+            )
+            return False, detail
+
     except urllib.error.HTTPError as e:
         try:
             body = json.loads(e.read().decode())
-            return False, body.get('description', f'HTTP {e.code} error.')
+            detail = body.get('description', f'HTTP {e.code} error.')
         except Exception:
-            return False, f'HTTP {e.code} error from Telegram (could not read details).'
+            detail = f'HTTP {e.code} error from Telegram (could not read details).'
+
+        audit.log(
+            actor=actor,
+            action='TELEGRAM_FAILED',
+            target_type='Telegram',
+            target_id=chat_id,
+            detail=f'Telegram failed: {detail}'[:255],
+        )
+        return False, detail
+
     except urllib.error.URLError as e:
-        return False, str(e)
+        detail = str(e)
+        audit.log(
+            actor=actor,
+            action='TELEGRAM_FAILED',
+            target_type='Telegram',
+            target_id=chat_id,
+            detail=f'Telegram failed: {detail}'[:255],
+        )
+        return False, detail
+
+    except Exception as e:
+        detail = str(e)
+        audit.log(
+            actor=actor,
+            action='TELEGRAM_FAILED',
+            target_type='Telegram',
+            target_id=chat_id,
+            detail=f'Telegram failed: {detail}'[:255],
+        )
+        return False, detail

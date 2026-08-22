@@ -110,6 +110,12 @@ class AuditAction(models.TextChoices):
     TRANSACTION_DELETE = 'TRANSACTION_DELETE', 'Transaction Deleted'
     BUDGET_CREATE = 'BUDGET_CREATE', 'Budget Created'
     BUDGET_DELETE = 'BUDGET_DELETE', 'Budget Deleted'
+    EMAIL_SENT = 'EMAIL_SENT', 'Email Sent'
+    EMAIL_FAILED = 'EMAIL_FAILED', 'Email Failed'
+    TELEGRAM_SENT = 'TELEGRAM_SENT', 'Telegram Sent'
+    TELEGRAM_FAILED = 'TELEGRAM_FAILED', 'Telegram Failed'
+    BACKUP_SUCCESS = 'BACKUP_SUCCESS', 'Backup Successful'
+    BACKUP_FAILED = 'BACKUP_FAILED', 'Backup Failed'
 
 
 class AuditLog(models.Model):
