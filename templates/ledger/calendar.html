@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Calendar — DailyLedger{% endblock %}
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+    <a href="?month={{ prev_month }}&year={{ prev_year }}" class="text-emerald-600 hover:underline">&larr; Prev</a>
+    <h1 class="text-2xl font-semibold">{{ month_name }} {{ year }}</h1>
+    <a href="?month={{ next_month }}&year={{ next_year }}" class="text-emerald-600 hover:underline">Next &rarr;</a>
+</div>
+<div class="bg-white shadow rounded-lg p-4 overflow-x-auto">
+<table class="w-full text-center text-sm border-collapse">
+    <thead>
+        <tr class="text-gray-500">
+            <th class="p-2">Mon</th><th class="p-2">Tue</th><th class="p-2">Wed</th><th class="p-2">Thu</th><th class="p-2">Fri</th><th class="p-2">Sat</th><th class="p-2">Sun</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for week in weeks %}
+        <tr>
+            {% for cell in week %}
+            {% if cell %}
+            <td class="border p-2 align-top h-20 w-24">
+                <a href="{% url 'ledger:day_detail' year month cell.day %}" class="block hover:bg-gray-50 rounded p-1">
+                    <div class="font-medium">{{ cell.day }}</div>
+                    {% if cell.expense > 0 %}<div class="text-red-600 text-xs">-{{ cell.expense }}</div>{% endif %}
+                    {% if cell.income > 0 %}<div class="text-emerald-600 text-xs">+{{ cell.income }}</div>{% endif %}
+                </a>
+            </td>
+            {% else %}
+            <td class="border p-2 bg-gray-50"></td>
+            {% endif %}
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+{% endblock %}

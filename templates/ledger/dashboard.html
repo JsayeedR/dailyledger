@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — DailyLedger{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-semibold mb-6">Dashboard</h1>
+
+<h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">This Month</h2>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+    <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-5">
+        <p class="text-sm text-emerald-700 font-medium">Income</p>
+        <p class="text-2xl font-bold text-emerald-700 mt-1">{{ currency }} {{ month_income }}</p>
+    </div>
+    <div class="bg-red-50 border border-red-200 rounded-lg p-5">
+        <p class="text-sm text-red-700 font-medium">Expense</p>
+        <p class="text-2xl font-bold text-red-700 mt-1">{{ currency }} {{ month_expense }}</p>
+    </div>
+    <div class="bg-amber-50 border border-amber-200 rounded-lg p-5">
+        <p class="text-sm text-amber-700 font-medium">In Hand</p>
+        <p class="text-2xl font-bold text-amber-700 mt-1">{{ currency }} {{ month_in_hand }}</p>
+    </div>
+</div>
+
+<h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Overview</h2>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+    <div class="bg-white shadow rounded-lg p-4">
+        <p class="text-xs text-gray-500">Total Balance</p>
+        <p class="text-lg font-semibold mt-1">{{ currency }} {{ total_balance }}</p>
+    </div>
+    <div class="bg-white shadow rounded-lg p-4">
+        <p class="text-xs text-gray-500">Today's Expense</p>
+        <p class="text-lg font-semibold mt-1 text-red-600">{{ currency }} {{ today_expense }}</p>
+    </div>
+    <div class="bg-white shadow rounded-lg p-4">
+        <p class="text-xs text-gray-500">Today's Income</p>
+        <p class="text-lg font-semibold mt-1 text-emerald-600">{{ currency }} {{ today_income }}</p>
+    </div>
+    <div class="bg-white shadow rounded-lg p-4">
+        <p class="text-xs text-gray-500">This Week's Expense</p>
+        <p class="text-lg font-semibold mt-1">{{ currency }} {{ this_week_expense }}</p>
+        {% if last_week_expense > 0 %}
+        <p class="text-xs mt-1 {% if this_week_expense > last_week_expense %}text-red-500{% else %}text-emerald-500{% endif %}">
+            vs {{ currency }} {{ last_week_expense }} last week
+        </p>
+        {% endif %}
+    </div>
+    <div class="bg-white shadow rounded-lg p-4">
+        <p class="text-xs text-gray-500">Last Week's Expense</p>
+        <p class="text-lg font-semibold mt-1">{{ currency }} {{ last_week_expense }}</p>
+    </div>
+    <div class="bg-white shadow rounded-lg p-4">
+        <p class="text-xs text-gray-500">This Month's Expense</p>
+        <p class="text-lg font-semibold mt-1">{{ currency }} {{ month_expense }}</p>
+        {% if last_month_expense > 0 %}
+        <p class="text-xs mt-1 {% if month_expense > last_month_expense %}text-red-500{% else %}text-emerald-500{% endif %}">
+            vs {{ currency }} {{ last_month_expense }} last month
+        </p>
+        {% endif %}
+    </div>
+    <div class="bg-white shadow rounded-lg p-4">
+        <p class="text-xs text-gray-500">Last Month's Expense</p>
+        <p class="text-lg font-semibold mt-1">{{ currency }} {{ last_month_expense }}</p>
+    </div>
+    <div class="bg-white shadow rounded-lg p-4">
+        <p class="text-xs text-gray-500">Transactions Today</p>
+        <p class="text-lg font-semibold mt-1">{{ today_count }}</p>
+    </div>
+</div>
+
+<div class="bg-white shadow rounded-lg p-5">
+    <h2 class="font-semibold text-lg mb-3">Recent Transactions</h2>
+    <table class="w-full text-sm">
+        <thead class="text-left text-gray-500 border-b">
+            <tr><th class="py-2">Date</th><th>Type</th><th>Category</th><th class="text-right">Amount</th></tr>
+        </thead>
+        <tbody>
+            {% for t in recent_transactions %}
+            <tr class="border-b last:border-0">
+                <td class="py-2">{{ t.date }}</td>
+                <td>{{ t.get_type_display }}</td>
+                <td>{{ t.category.name|default:"—" }}</td>
+                <td class="text-right {% if t.type == 'EXPENSE' %}text-red-600{% else %}text-emerald-600{% endif %}">
+                    {{ currency }} {{ t.amount }}
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" class="py-4 text-center text-gray-400">No transactions yet.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <div class="text-center mt-4">
+        <a href="{% url 'ledger:transaction_list' %}" class="inline-block bg-slate-800 hover:bg-slate-900 text-white px-5 py-2 rounded text-sm font-medium">
+            View All Transactions
+        </a>
+    </div>
+</div>
+{% endblock %}

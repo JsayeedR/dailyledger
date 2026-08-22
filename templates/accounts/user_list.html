@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}All Users — DailyLedger{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-semibold mb-6">All Users</h1>
+<div class="bg-white shadow rounded-lg p-5 overflow-x-auto">
+<table class="w-full text-sm">
+<thead class="text-left text-gray-500 border-b"><tr><th class="py-2">Email</th><th>Full Name</th><th>Role</th><th>Status</th><th>Joined</th><th class="text-right">Action</th></tr></thead>
+<tbody>
+{% for u in users %}
+<tr class="border-b last:border-0">
+<td class="py-2">{{ u.email }}</td>
+<td>{{ u.full_name|default:"—" }}</td>
+<td>{{ u.get_role_display }}</td>
+<td>
+    {% if u.approval_status == 'PENDING' %}<span class="text-amber-600">Pending</span>
+    {% elif u.approval_status == 'REJECTED' %}<span class="text-red-500">Rejected</span>
+    {% elif u.is_active %}<span class="text-emerald-600">Active</span>
+    {% else %}<span class="text-gray-400">Deactivated</span>{% endif %}
+</td>
+<td>{{ u.date_joined|date:"M d, Y" }}</td>
+<td class="text-right">
+    {% if u.approval_status == 'APPROVED' and u != request.user %}
+    <form method="post" action="{% url 'accounts:toggle_user_active' u.id %}" onsubmit="return confirm('{% if u.is_active %}Deactivate{% else %}Reactivate{% endif %} this user?');">
+        {% csrf_token %}
+        <button type="submit" class="text-xs px-2 py-1 rounded {% if u.is_active %}bg-red-50 text-red-600 hover:bg-red-100{% else %}bg-emerald-50 text-emerald-600 hover:bg-emerald-100{% endif %}">
+            {% if u.is_active %}Deactivate{% else %}Reactivate{% endif %}
+        </button>
+    </form>
+    {% endif %}
+</td>
+</tr>
+{% empty %}
+<tr><td colspan="6" class="py-4 text-center text-gray-400">No users yet.</td></tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block container_width %}max-w-2xl{% endblock %}
+{% block title %}My Profile — DailyLedger{% endblock %}
+{% block content %}
+<div class="bg-white shadow rounded-lg p-8">
+    <h1 class="text-xl font-bold mb-6">My Profile</h1>
+    <form method="post">
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="mb-4">
+            <label class="block text-sm font-medium mb-1">{{ field.label }}</label>
+            {{ field }}
+            {% if field.name == 'telegram_id' %}
+            <p class="text-xs text-gray-400 mt-1">To find your numeric Telegram Chat ID: open Telegram, search for <strong>@userinfobot</strong>, and send it any message — it replies instantly with your ID.</p>
+            {% endif %}
+            {% if field.errors %}<p class="text-red-600 text-sm mt-1">{{ field.errors|striptags }}</p>{% endif %}
+        </div>
+        {% endfor %}
+        <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded font-medium">Save Changes</button>
+    </form>
+</div>
+{% endblock %}

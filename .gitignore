@@ -1,0 +1,39 @@
+# Secrets
+.env
+*.env
+
+# Database
+db.sqlite3
+*.sqlite3
+**/backups/database/
+dailyledger_backup_*.sql
+
+# Project backups
+**/backups/project/
+dailyledger_backup_*/
+
+# Media / uploads
+media/
+
+# Python
+__pycache__/
+*.pyc
+venv/
+env/
+*.egg-info/
+
+# Django
+staticfiles/
+*.log
+
+# Android (for the future sysmonitor-style APK build)
+dailyledger-apk/app/build/
+dailyledger-apk/.gradle/
+dailyledger-apk/local.properties
+*.apk
+*.keystore
+*.jks
+
+# IDE
+.vscode/
+.idea/

@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}New Budget — DailyLedger{% endblock %}
+{% block container_width %}max-w-3xl{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-semibold mb-6">New Budget</h1>
+<div class="bg-white shadow rounded-lg p-6 max-w-lg mx-auto">
+    <form method="post">
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="mb-4">
+            <label class="block text-sm font-medium mb-1">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}
+                <p class="text-red-600 text-sm mt-1">{{ field.errors|striptags }}</p>
+            {% endif %}
+        </div>
+        {% endfor %}
+        <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded font-medium">
+            Save Budget
+        </button>
+    </form>
+</div>
+{% endblock %}

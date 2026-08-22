@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Budgets — DailyLedger{% endblock %}
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-semibold">Budgets — {{ current_month }}/{{ current_year }}</h1>
+    <a href="{% url 'ledger:add_budget' %}" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded text-sm">+ New Budget</a>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    {% for b in budgets %}
+    <div class="bg-white shadow rounded-lg p-5">
+        <div class="flex justify-between mb-2">
+            <span class="font-medium">{{ b.category.name }}</span>
+            <a href="{% url 'ledger:delete_budget' b.pk %}" class="text-xs text-red-500 hover:underline">Remove</a>
+        </div>
+        <div class="w-full bg-gray-100 rounded-full h-3 mb-2">
+            <div class="h-3 rounded-full {% if b.percent_used >= 100 %}bg-red-600{% elif b.percent_used >= 80 %}bg-amber-500{% else %}bg-emerald-500{% endif %}"
+                 style="width: {% if b.percent_used > 100 %}100{% else %}{{ b.percent_used }}{% endif %}%"></div>
+        </div>
+        <div class="flex justify-between text-sm text-gray-600">
+            <span>{{ currency }} {{ b.spent }} of {{ currency }} {{ b.limit_amount }}</span>
+            <span class="{% if b.percent_used >= 100 %}text-red-600 font-semibold{% elif b.percent_used >= 80 %}text-amber-600 font-semibold{% endif %}">
+                {{ b.percent_used }}%
+            </span>
+        </div>
+        {% if b.percent_used >= 100 %}
+        <p class="text-red-600 text-xs mt-2 font-medium">Budget exceeded</p>
+        {% elif b.percent_used >= 80 %}
+        <p class="text-amber-600 text-xs mt-2 font-medium">Approaching budget limit</p>
+        {% endif %}
+    </div>
+    {% empty %}
+    <p class="text-gray-400 col-span-2">No budgets set for this month yet.</p>
+    {% endfor %}
+</div>
+{% endblock %}

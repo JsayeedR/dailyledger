@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}Categories & Payment Methods — DailyLedger{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-semibold mb-2">Categories & Payment Methods</h1>
+<p class="text-gray-500 text-sm mb-6">Items can't be deleted, to protect your transaction history — but you can deactivate ones you don't want to see, and add new ones anytime. Deactivating never hides past transactions from your reports or spreadsheet.</p>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+    <div class="bg-white shadow rounded-lg p-5">
+        <h2 class="font-semibold mb-3">Expense Categories</h2>
+        <ul class="divide-y text-sm mb-4">
+            {% for c in expense_categories %}
+            <li class="flex justify-between items-center py-2">
+                <span class="{% if not c.is_active %}text-gray-400 line-through{% endif %}">{{ c.name }}</span>
+                <form method="post" action="{% url 'ledger:toggle_category' c.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" class="text-xs px-2 py-1 rounded {% if c.is_active %}bg-red-50 text-red-600 hover:bg-red-100{% else %}bg-emerald-50 text-emerald-600 hover:bg-emerald-100{% endif %}">
+                        {% if c.is_active %}Deactivate{% else %}Activate{% endif %}
+                    </button>
+                </form>
+            </li>
+            {% empty %}
+            <li class="py-2 text-gray-400">None yet.</li>
+            {% endfor %}
+        </ul>
+        <form method="post" action="{% url 'ledger:add_category' %}" class="flex gap-2">
+            {% csrf_token %}
+            <input type="hidden" name="type" value="EXPENSE">
+            <input type="text" name="name" list="expense-suggestions" placeholder="New or preset expense category" required class="border rounded px-3 py-1.5 text-sm flex-1">
+            <datalist id="expense-suggestions">
+                {% for name in suggested_expense %}<option value="{{ name }}">{% endfor %}
+            </datalist>
+            <button type="submit" class="bg-slate-800 hover:bg-slate-900 text-white px-3 py-1.5 rounded text-sm">Add</button>
+        </form>
+    </div>
+
+    <div class="bg-white shadow rounded-lg p-5">
+        <h2 class="font-semibold mb-3">Income Categories</h2>
+        <ul class="divide-y text-sm mb-4">
+            {% for c in income_categories %}
+            <li class="flex justify-between items-center py-2">
+                <span class="{% if not c.is_active %}text-gray-400 line-through{% endif %}">{{ c.name }}</span>
+                <form method="post" action="{% url 'ledger:toggle_category' c.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" class="text-xs px-2 py-1 rounded {% if c.is_active %}bg-red-50 text-red-600 hover:bg-red-100{% else %}bg-emerald-50 text-emerald-600 hover:bg-emerald-100{% endif %}">
+                        {% if c.is_active %}Deactivate{% else %}Activate{% endif %}
+                    </button>
+                </form>
+            </li>
+            {% empty %}
+            <li class="py-2 text-gray-400">None yet.</li>
+            {% endfor %}
+        </ul>
+        <form method="post" action="{% url 'ledger:add_category' %}" class="flex gap-2">
+            {% csrf_token %}
+            <input type="hidden" name="type" value="INCOME">
+            <input type="text" name="name" list="income-suggestions" placeholder="New or preset income category" required class="border rounded px-3 py-1.5 text-sm flex-1">
+            <datalist id="income-suggestions">
+                {% for name in suggested_income %}<option value="{{ name }}">{% endfor %}
+            </datalist>
+            <button type="submit" class="bg-slate-800 hover:bg-slate-900 text-white px-3 py-1.5 rounded text-sm">Add</button>
+        </form>
+    </div>
+</div>
+
+<div class="bg-white shadow rounded-lg p-5">
+    <h2 class="font-semibold mb-3">Payment Methods</h2>
+    <ul class="divide-y text-sm mb-4">
+        {% for pm in payment_methods %}
+        <li class="flex justify-between items-center py-2">
+            <span class="{% if not pm.is_active %}text-gray-400 line-through{% endif %}">{{ pm.name }}</span>
+            <form method="post" action="{% url 'ledger:toggle_payment_method' pm.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="text-xs px-2 py-1 rounded {% if pm.is_active %}bg-red-50 text-red-600 hover:bg-red-100{% else %}bg-emerald-50 text-emerald-600 hover:bg-emerald-100{% endif %}">
+                    {% if pm.is_active %}Deactivate{% else %}Activate{% endif %}
+                </button>
+            </form>
+        </li>
+        {% empty %}
+        <li class="py-2 text-gray-400">None yet.</li>
+        {% endfor %}
+    </ul>
+    <form method="post" action="{% url 'ledger:add_payment_method' %}" class="flex gap-2 max-w-sm">
+        {% csrf_token %}
+        <input type="text" name="name" list="payment-suggestions" placeholder="New or preset payment method" required class="border rounded px-3 py-1.5 text-sm flex-1">
+        <datalist id="payment-suggestions">
+            {% for name in suggested_payment %}<option value="{{ name }}">{% endfor %}
+        </datalist>
+        <button type="submit" class="bg-slate-800 hover:bg-slate-900 text-white px-3 py-1.5 rounded text-sm">Add</button>
+    </form>
+</div>
+{% endblock %}

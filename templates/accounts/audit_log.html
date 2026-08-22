@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Audit Log — DailyLedger{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-semibold mb-6">Audit Log</h1>
+<div class="bg-white shadow rounded-lg p-5 overflow-x-auto">
+<table class="w-full text-sm">
+<thead class="text-left text-gray-500 border-b"><tr><th class="py-2">Time</th><th>User</th><th>Action</th><th>Target</th><th>Detail</th><th>IP</th></tr></thead>
+<tbody>
+{% for log in logs %}
+<tr class="border-b last:border-0">
+<td class="py-2 whitespace-nowrap">{{ log.created_at|date:"M d, Y H:i:s" }}</td>
+<td>{{ log.actor.email|default:"—" }}</td>
+<td>{{ log.get_action_display }}</td>
+<td>{{ log.target_type }} {{ log.target_id }}</td>
+<td>{{ log.detail|default:"—" }}</td>
+<td>{{ log.ip_address|default:"—" }}</td>
+</tr>
+{% empty %}
+<tr><td colspan="6" class="py-4 text-center text-gray-400">No activity logged yet.</td></tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+{% endblock %}

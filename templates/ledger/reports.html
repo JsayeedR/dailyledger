@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% block title %}Reports — DailyLedger{% endblock %}
+{% block content %}
+<div class="flex flex-wrap justify-between items-center mb-6 gap-3">
+    <h1 class="text-2xl font-semibold">Reports — {{ label }}</h1>
+    <div class="flex flex-wrap gap-2 text-sm">
+        <a href="?range=week" class="px-3 py-1.5 rounded {% if range_type == 'week' %}bg-emerald-600 text-white{% else %}bg-gray-100 hover:bg-gray-200{% endif %}">Last 7 Days</a>
+        <a href="?range=15days" class="px-3 py-1.5 rounded {% if range_type == '15days' %}bg-emerald-600 text-white{% else %}bg-gray-100 hover:bg-gray-200{% endif %}">Last 15 Days</a>
+        <a href="?range=month" class="px-3 py-1.5 rounded {% if range_type == 'month' %}bg-emerald-600 text-white{% else %}bg-gray-100 hover:bg-gray-200{% endif %}">This Month</a>
+        <a href="?range=year" class="px-3 py-1.5 rounded {% if range_type == 'year' %}bg-emerald-600 text-white{% else %}bg-gray-100 hover:bg-gray-200{% endif %}">This Year</a>
+    </div>
+</div>
+
+<form method="get" class="bg-white shadow rounded-lg p-4 mb-6 flex flex-wrap items-end gap-3 text-sm">
+    <input type="hidden" name="range" value="custom">
+    <div>
+        <label class="block text-gray-500 mb-1">From</label>
+        <input type="date" name="start" value="{{ start_date|date:'Y-m-d' }}" class="border rounded px-3 py-2">
+    </div>
+    <div>
+        <label class="block text-gray-500 mb-1">To</label>
+        <input type="date" name="end" value="{{ end_date|date:'Y-m-d' }}" class="border rounded px-3 py-2">
+    </div>
+    <button type="submit" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded">Custom Range</button>
+</form>
+
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+    <div class="bg-white shadow rounded-lg p-5">
+        <p class="text-sm text-gray-500">Total Income</p>
+        <p class="text-2xl font-semibold text-emerald-600 mt-1">{{ currency }} {{ total_income }}</p>
+    </div>
+    <div class="bg-white shadow rounded-lg p-5">
+        <p class="text-sm text-gray-500">Total Expense</p>
+        <p class="text-2xl font-semibold text-red-600 mt-1">{{ currency }} {{ total_expense }}</p>
+    </div>
+    <div class="bg-white shadow rounded-lg p-5">
+        <p class="text-sm text-gray-500">Savings</p>
+        <p class="text-2xl font-semibold mt-1">{{ currency }} {{ savings }}</p>
+    </div>
+    <div class="bg-white shadow rounded-lg p-5">
+        <p class="text-sm text-gray-500">Transactions</p>
+        <p class="text-2xl font-semibold mt-1">{{ txn_count }}</p>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+    <div class="bg-white shadow rounded-lg p-5">
+        <div class="flex justify-between items-center mb-3">
+            <h2 class="font-semibold">Income vs Expense</h2>
+            <button onclick="downloadChart('incomeExpenseChart','income-vs-expense.jpg')" class="text-xs text-slate-500 hover:text-slate-800 underline">Download JPG</button>
+        </div>
+        <canvas id="incomeExpenseChart" height="220"></canvas>
+    </div>
+    <div class="bg-white shadow rounded-lg p-5">
+        <div class="flex justify-between items-center mb-3">
+            <h2 class="font-semibold">Expense by Category</h2>
+            {% if category_labels %}<button onclick="downloadChart('categoryChart','expense-by-category.jpg')" class="text-xs text-slate-500 hover:text-slate-800 underline">Download JPG</button>{% endif %}
+        </div>
+        {% if category_labels %}
+        <canvas id="categoryChart" height="220"></canvas>
+        {% else %}
+        <p class="text-gray-400 text-sm">No expense data in this range.</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="bg-white shadow rounded-lg p-5">
+    <div class="flex justify-between items-center mb-3">
+        <h2 class="font-semibold">Income vs Expense vs Savings</h2>
+        <button onclick="downloadChart('savingsChart','income-expense-savings.jpg')" class="text-xs text-slate-500 hover:text-slate-800 underline">Download JPG</button>
+    </div>
+    <canvas id="savingsChart" height="180"></canvas>
+</div>
+
+{{ category_labels|json_script:"category-labels" }}
+{{ category_values|json_script:"category-values" }}
+{{ total_income_float|json_script:"total-income" }}
+{{ total_expense_float|json_script:"total-expense" }}
+{{ savings_float|json_script:"savings-value" }}
+{{ currency|json_script:"currency-code" }}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+<script>
+Chart.register(ChartDataLabels);
+
+const categoryLabels = JSON.parse(document.getElementById('category-labels').textContent);
+const categoryValues = JSON.parse(document.getElementById('category-values').textContent);
+const totalIncome = JSON.parse(document.getElementById('total-income').textContent);
+const totalExpense = JSON.parse(document.getElementById('total-expense').textContent);
+const savingsValue = JSON.parse(document.getElementById('savings-value').textContent);
+const currencyCode = JSON.parse(document.getElementById('currency-code').textContent);
+
+function fmtLabel(value) {
+    return new Intl.NumberFormat('en-US').format(Math.round(value)) + ' ' + currencyCode;
+}
+
+new Chart(document.getElementById('incomeExpenseChart'), {
+    type: 'doughnut',
+    data: { labels: ['Income', 'Expense'], datasets: [{ data: [totalIncome, totalExpense], backgroundColor: ['#10b981', '#ef4444'] }] },
+    options: {
+        plugins: {
+            legend: { position: 'bottom' },
+            datalabels: { color: '#fff', font: { weight: 'bold', size: 12 }, formatter: fmtLabel }
+        }
+    }
+});
+
+if (categoryLabels.length > 0) {
+    new Chart(document.getElementById('categoryChart'), {
+        type: 'pie',
+        data: {
+            labels: categoryLabels,
+            datasets: [{ data: categoryValues, backgroundColor: ['#10b981','#3b82f6','#f59e0b','#ef4444','#8b5cf6','#ec4899','#14b8a6','#f97316','#6366f1','#84cc16','#06b6d4'] }]
+        },
+        options: {
+            plugins: {
+                legend: { position: 'bottom' },
+                datalabels: { color: '#fff', font: { weight: 'bold', size: 11 }, formatter: fmtLabel }
+            }
+        }
+    });
+}
+
+new Chart(document.getElementById('savingsChart'), {
+    type: 'bar',
+    data: {
+        labels: ['Income', 'Expense', 'Savings'],
+        datasets: [{ data: [totalIncome, totalExpense, savingsValue], backgroundColor: ['#10b981', '#ef4444', '#3b82f6'] }]
+    },
+    options: {
+        indexAxis: 'y',
+        plugins: {
+            legend: { display: false },
+            datalabels: { color: '#111', anchor: 'end', align: 'right', font: { weight: 'bold', size: 11 }, formatter: fmtLabel }
+        }
+    }
+});
+
+function downloadChart(canvasId, filename) {
+    const canvas = document.getElementById(canvasId);
+    const chart = Chart.getChart(canvas);
+    if (!chart) return;
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = canvas.width;
+    tempCanvas.height = canvas.height;
+    const ctx = tempCanvas.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+    ctx.drawImage(canvas, 0, 0);
+    const url = tempCanvas.toDataURL('image/jpeg', 0.95);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+}
+</script>
+{% endblock %}

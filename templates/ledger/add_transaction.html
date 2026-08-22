@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}{% if mode == 'edit' %}Edit{% else %}Add{% endif %} Transaction — DailyLedger{% endblock %}
+{% block container_width %}max-w-3xl{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-semibold mb-6">{% if mode == 'edit' %}Edit Transaction{% else %}Add Transaction{% endif %}</h1>
+<div class="bg-white shadow rounded-lg p-6 max-w-lg mx-auto">
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="mb-4">
+            <label class="block text-sm font-medium mb-1">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}
+                <p class="text-red-600 text-sm mt-1">{{ field.errors|striptags }}</p>
+            {% endif %}
+        </div>
+        {% endfor %}
+        <div class="flex gap-3">
+            <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded font-medium">
+                Save Transaction
+            </button>
+            {% if mode == 'edit' %}
+            <a href="{% url 'ledger:delete_transaction' txn.pk %}" class="bg-red-50 hover:bg-red-100 text-red-600 px-5 py-2 rounded font-medium">
+                Delete
+            </a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+
+<script>
+(function() {
+    var typeSelect = document.getElementById('id_type');
+    var categorySelect = document.getElementById('id_category');
+    if (!typeSelect || !categorySelect) { return; }
+
+    function filterCategories() {
+        var selectedType = typeSelect.value;
+        var hasVisibleSelected = false;
+        var options = categorySelect.options;
+        for (var i = 0; i < options.length; i++) {
+            var opt = options[i];
+            if (!opt.value) { opt.hidden = false; continue; }
+            var match = opt.getAttribute('data-type') === selectedType;
+            opt.hidden = !match;
+            if (match && opt.selected) { hasVisibleSelected = true; }
+        }
+        if (!hasVisibleSelected) { categorySelect.value = ''; }
+    }
+
+    typeSelect.addEventListener('change', filterCategories);
+    filterCategories();
+})();
+</script>
+{% endblock %}

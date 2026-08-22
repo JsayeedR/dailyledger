@@ -1,0 +1,245 @@
+{% extends "base.html" %}
+{% block title %}Detail Reports — DailyLedger{% endblock %}
+{% block content %}
+<div class="flex flex-wrap justify-between items-center mb-6 gap-3">
+    <h1 class="text-2xl font-semibold">Detail Reports — {{ label }}</h1>
+    <div class="flex flex-wrap gap-2 text-sm">
+        <a href="?range=week" class="px-3 py-1.5 rounded {% if range_type == 'week' %}bg-emerald-600 text-white{% else %}bg-gray-100 hover:bg-gray-200{% endif %}">Last 7 Days</a>
+        <a href="?range=15days" class="px-3 py-1.5 rounded {% if range_type == '15days' %}bg-emerald-600 text-white{% else %}bg-gray-100 hover:bg-gray-200{% endif %}">Last 15 Days</a>
+        <a href="?range=month" class="px-3 py-1.5 rounded {% if range_type == 'month' %}bg-emerald-600 text-white{% else %}bg-gray-100 hover:bg-gray-200{% endif %}">This Month</a>
+        <a href="?range=year" class="px-3 py-1.5 rounded {% if range_type == 'year' %}bg-emerald-600 text-white{% else %}bg-gray-100 hover:bg-gray-200{% endif %}">This Year</a>
+    </div>
+</div>
+
+<form method="get" class="bg-white shadow rounded-lg p-4 mb-6 flex flex-wrap items-end gap-3 text-sm">
+    <input type="hidden" name="range" value="custom">
+    <div>
+        <label class="block text-gray-500 mb-1">From</label>
+        <input type="date" name="start" value="{{ start_date|date:'Y-m-d' }}" class="border rounded px-3 py-2">
+    </div>
+    <div>
+        <label class="block text-gray-500 mb-1">To</label>
+        <input type="date" name="end" value="{{ end_date|date:'Y-m-d' }}" class="border rounded px-3 py-2">
+    </div>
+    <button type="submit" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded">Custom Range</button>
+</form>
+
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white shadow rounded-lg p-4">
+        <p class="text-xs text-gray-500">Total Income</p>
+        <p class="text-lg font-semibold text-emerald-600 mt-1">{{ currency }} {{ total_income }}</p>
+    </div>
+    <div class="bg-white shadow rounded-lg p-4">
+        <p class="text-xs text-gray-500">Total Expense</p>
+        <p class="text-lg font-semibold text-red-600 mt-1">{{ currency }} {{ total_expense }}</p>
+    </div>
+    <div class="bg-white shadow rounded-lg p-4">
+        <p class="text-xs text-gray-500">Top Category</p>
+        <p class="text-lg font-semibold mt-1">{{ top_category|default:"—" }}</p>
+    </div>
+    <div class="bg-white shadow rounded-lg p-4">
+        <p class="text-xs text-gray-500">Top Payment Method</p>
+        <p class="text-lg font-semibold mt-1">{{ top_payment|default:"—" }}</p>
+    </div>
+</div>
+
+<div class="flex gap-2 mb-4 overflow-x-auto">
+    <button onclick="showDetailTab('expense')" id="tab-btn-expense" class="tab-btn px-4 py-2 text-sm font-medium rounded-full bg-emerald-600 text-white whitespace-nowrap">Expense Categories</button>
+    <button onclick="showDetailTab('income')" id="tab-btn-income" class="tab-btn px-4 py-2 text-sm font-medium rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 whitespace-nowrap">Income Sources</button>
+    <button onclick="showDetailTab('payment')" id="tab-btn-payment" class="tab-btn px-4 py-2 text-sm font-medium rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 whitespace-nowrap">Payment Methods</button>
+</div>
+
+<div id="tab-expense" class="tab-panel">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div class="bg-white shadow rounded-lg p-5">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="font-semibold">Expense Category Distribution</h2>
+                {% if expense_labels %}<button onclick="downloadChart('expenseChart','expense-categories.jpg')" class="text-xs text-slate-500 hover:text-slate-800 underline">Download JPG</button>{% endif %}
+            </div>
+            {% if expense_labels %}<canvas id="expenseChart" height="220"></canvas>{% else %}<p class="text-gray-400 text-sm">No expense data in this range.</p>{% endif %}
+        </div>
+        <div class="bg-white shadow rounded-lg p-5 overflow-x-auto">
+            <h2 class="font-semibold mb-3">Breakdown</h2>
+            <table class="w-full text-sm">
+                <thead class="text-left text-gray-500 border-b"><tr><th class="py-2">Category</th><th class="text-right">Txns</th><th class="text-right">Total</th><th class="text-right">%</th></tr></thead>
+                <tbody>
+                    {% for row in expense_categories %}
+                    <tr class="border-b last:border-0">
+                        <td class="py-2">{{ row.category__name }}</td>
+                        <td class="text-right">{{ row.count }}</td>
+                        <td class="text-right text-red-600">{{ currency }} {{ row.total }}</td>
+                        <td class="text-right">{{ row.pct }}%</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" class="py-4 text-center text-gray-400">No expense data in this range.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div id="tab-income" class="tab-panel hidden">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div class="bg-white shadow rounded-lg p-5">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="font-semibold">Income Source Distribution</h2>
+                {% if income_labels %}<button onclick="downloadChart('incomeChart','income-sources.jpg')" class="text-xs text-slate-500 hover:text-slate-800 underline">Download JPG</button>{% endif %}
+            </div>
+            {% if income_labels %}<canvas id="incomeChart" height="220"></canvas>{% else %}<p class="text-gray-400 text-sm">No income data in this range.</p>{% endif %}
+        </div>
+        <div class="bg-white shadow rounded-lg p-5 overflow-x-auto">
+            <h2 class="font-semibold mb-3">Breakdown</h2>
+            <table class="w-full text-sm">
+                <thead class="text-left text-gray-500 border-b"><tr><th class="py-2">Source</th><th class="text-right">Txns</th><th class="text-right">Total</th><th class="text-right">%</th></tr></thead>
+                <tbody>
+                    {% for row in income_sources %}
+                    <tr class="border-b last:border-0">
+                        <td class="py-2">{{ row.category__name }}</td>
+                        <td class="text-right">{{ row.count }}</td>
+                        <td class="text-right text-emerald-600">{{ currency }} {{ row.total }}</td>
+                        <td class="text-right">{{ row.pct }}%</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" class="py-4 text-center text-gray-400">No income data in this range.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div id="tab-payment" class="tab-panel hidden">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div class="bg-white shadow rounded-lg p-5">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="font-semibold">Income vs Expense by Method</h2>
+                {% if payment_labels %}<button onclick="downloadChart('paymentChart','payment-methods.jpg')" class="text-xs text-slate-500 hover:text-slate-800 underline">Download JPG</button>{% endif %}
+            </div>
+            {% if payment_labels %}<canvas id="paymentChart" height="220"></canvas>{% else %}<p class="text-gray-400 text-sm">No payment method data in this range.</p>{% endif %}
+        </div>
+        <div class="bg-white shadow rounded-lg p-5 overflow-x-auto">
+            <h2 class="font-semibold mb-3">Breakdown</h2>
+            <table class="w-full text-sm">
+                <thead class="text-left text-gray-500 border-b"><tr><th class="py-2">Method</th><th class="text-right">Income</th><th class="text-right">Expense</th><th class="text-right">Txns</th></tr></thead>
+                <tbody>
+                    {% for row in payment_breakdown %}
+                    <tr class="border-b last:border-0">
+                        <td class="py-2">{{ row.name }}</td>
+                        <td class="text-right text-emerald-600">{{ currency }} {{ row.income }}</td>
+                        <td class="text-right text-red-600">{{ currency }} {{ row.expense }}</td>
+                        <td class="text-right">{{ row.count }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" class="py-4 text-center text-gray-400">No payment method data in this range.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{{ expense_labels|json_script:"expense-labels" }}
+{{ expense_values|json_script:"expense-values" }}
+{{ income_labels|json_script:"income-labels" }}
+{{ income_values|json_script:"income-values" }}
+{{ payment_labels|json_script:"payment-labels" }}
+{{ payment_income_values|json_script:"payment-income-values" }}
+{{ payment_expense_values|json_script:"payment-expense-values" }}
+{{ currency|json_script:"currency-code" }}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+<script>
+Chart.register(ChartDataLabels);
+
+const palette = ['#10b981','#3b82f6','#f59e0b','#ef4444','#8b5cf6','#ec4899','#14b8a6','#f97316','#6366f1','#84cc16','#06b6d4'];
+const currencyCode = JSON.parse(document.getElementById('currency-code').textContent);
+
+function fmtLabel(value) {
+    return new Intl.NumberFormat('en-US').format(Math.round(value)) + ' ' + currencyCode;
+}
+
+const expenseLabels = JSON.parse(document.getElementById('expense-labels').textContent);
+const expenseValues = JSON.parse(document.getElementById('expense-values').textContent);
+if (expenseLabels.length > 0) {
+    new Chart(document.getElementById('expenseChart'), {
+        type: 'pie',
+        data: { labels: expenseLabels, datasets: [{ data: expenseValues, backgroundColor: palette }] },
+        options: {
+            plugins: {
+                legend: { position: 'bottom' },
+                datalabels: { color: '#fff', font: { weight: 'bold', size: 11 }, formatter: fmtLabel }
+            }
+        }
+    });
+}
+
+const incomeLabels = JSON.parse(document.getElementById('income-labels').textContent);
+const incomeValues = JSON.parse(document.getElementById('income-values').textContent);
+if (incomeLabels.length > 0) {
+    new Chart(document.getElementById('incomeChart'), {
+        type: 'pie',
+        data: { labels: incomeLabels, datasets: [{ data: incomeValues, backgroundColor: palette }] },
+        options: {
+            plugins: {
+                legend: { position: 'bottom' },
+                datalabels: { color: '#fff', font: { weight: 'bold', size: 11 }, formatter: fmtLabel }
+            }
+        }
+    });
+}
+
+const paymentLabels = JSON.parse(document.getElementById('payment-labels').textContent);
+const paymentIncomeValues = JSON.parse(document.getElementById('payment-income-values').textContent);
+const paymentExpenseValues = JSON.parse(document.getElementById('payment-expense-values').textContent);
+if (paymentLabels.length > 0) {
+    new Chart(document.getElementById('paymentChart'), {
+        type: 'bar',
+        data: {
+            labels: paymentLabels,
+            datasets: [
+                { label: 'Income', data: paymentIncomeValues, backgroundColor: '#10b981' },
+                { label: 'Expense', data: paymentExpenseValues, backgroundColor: '#ef4444' },
+            ]
+        },
+        options: {
+            plugins: {
+                legend: { position: 'bottom' },
+                datalabels: { color: '#111', anchor: 'end', align: 'top', font: { weight: 'bold', size: 10 }, formatter: fmtLabel }
+            }
+        }
+    });
+}
+
+function showDetailTab(name) {
+    document.querySelectorAll('.tab-panel').forEach(function(el) { el.classList.add('hidden'); });
+    document.querySelectorAll('.tab-btn').forEach(function(btn) {
+        btn.classList.remove('bg-emerald-600', 'text-white');
+        btn.classList.add('bg-gray-100', 'text-gray-600');
+    });
+    document.getElementById('tab-' + name).classList.remove('hidden');
+    var activeBtn = document.getElementById('tab-btn-' + name);
+    activeBtn.classList.add('bg-emerald-600', 'text-white');
+    activeBtn.classList.remove('bg-gray-100', 'text-gray-600');
+}
+
+function downloadChart(canvasId, filename) {
+    const canvas = document.getElementById(canvasId);
+    const chart = Chart.getChart(canvas);
+    if (!chart) return;
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = canvas.width;
+    tempCanvas.height = canvas.height;
+    const ctx = tempCanvas.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+    ctx.drawImage(canvas, 0, 0);
+    const url = tempCanvas.toDataURL('image/jpeg', 0.95);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+}
+</script>
+{% endblock %}

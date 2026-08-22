@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Notification Requests — DailyLedger{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-semibold mb-6">Notification Preference Requests</h1>
+
+<div class="bg-white shadow rounded-lg p-5 overflow-x-auto mb-8">
+    <h2 class="font-semibold mb-3">Pending ({{ pending|length }})</h2>
+    <table class="w-full text-sm">
+        <thead class="text-left text-gray-500 border-b">
+            <tr><th class="py-2">User</th><th>Requested</th><th>Frequency</th><th>Channels</th><th class="text-right">Action</th></tr>
+        </thead>
+        <tbody>
+        {% for p in pending %}
+        <tr class="border-b last:border-0">
+            <td class="py-2">{{ p.user.email }}</td>
+            <td>{{ p.requested_at|date:"M d, Y H:i" }}</td>
+            <td>{{ p.requested_frequency_labels|join:", "|default:"—" }}</td>
+            <td>
+                {% if p.requested_email_enabled %}Email{% endif %}
+                {% if p.requested_email_enabled and p.requested_telegram_enabled %} + {% endif %}
+                {% if p.requested_telegram_enabled %}Telegram{% endif %}
+                {% if not p.requested_email_enabled and not p.requested_telegram_enabled %}—{% endif %}
+            </td>
+            <td class="text-right whitespace-nowrap">
+                <form method="post" action="{% url 'accounts:approve_preference' p.id %}" class="inline">
+                    {% csrf_token %}
+                    <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded text-xs">Approve</button>
+                </form>
+                <form method="post" action="{% url 'accounts:reject_preference' p.id %}" class="inline ml-2" onsubmit="return confirm('Reject this request?');">
+                    {% csrf_token %}
+                    <button type="submit" class="bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1 rounded text-xs">Reject</button>
+                </form>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="py-4 text-center text-gray-400">No pending requests.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="bg-white shadow rounded-lg p-5 overflow-x-auto">
+    <h2 class="font-semibold mb-3">Recent decisions</h2>
+    <table class="w-full text-sm">
+        <thead class="text-left text-gray-500 border-b">
+            <tr><th class="py-2">User</th><th>Status</th><th>Frequency</th><th>Reviewed by</th><th>Reviewed</th></tr>
+        </thead>
+        <tbody>
+        {% for p in history %}
+        <tr class="border-b last:border-0">
+            <td class="py-2">{{ p.user.email }}</td>
+            <td>
+                {% if p.review_status == 'APPROVED' %}<span class="text-emerald-600">Approved</span>
+                {% else %}<span class="text-red-600">Rejected</span>{% endif %}
+            </td>
+            <td>{{ p.requested_frequency_labels|join:", "|default:"—" }}</td>
+            <td>{{ p.reviewed_by.email|default:"—" }}</td>
+            <td>{{ p.reviewed_at|date:"M d, Y H:i" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="py-4 text-center text-gray-400">No decisions yet.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

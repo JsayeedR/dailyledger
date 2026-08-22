@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}User Approvals — DailyLedger{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-semibold mb-6">User Approvals</h1>
+
+<div class="flex gap-2 mb-4">
+    <button onclick="showApprovalTab('pending')" id="tab-btn-pending" class="tab-btn px-4 py-2 text-sm font-medium rounded-full bg-emerald-600 text-white">Pending ({{ pending|length }})</button>
+    <button onclick="showApprovalTab('approved')" id="tab-btn-approved" class="tab-btn px-4 py-2 text-sm font-medium rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200">Approved ({{ approved|length }})</button>
+    <button onclick="showApprovalTab('rejected')" id="tab-btn-rejected" class="tab-btn px-4 py-2 text-sm font-medium rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200">Rejected ({{ rejected|length }})</button>
+</div>
+
+<div id="tab-pending" class="tab-panel bg-white shadow rounded-lg p-5 overflow-x-auto">
+    <table class="w-full text-sm">
+        <thead class="text-left text-gray-500 border-b"><tr><th class="py-2">Email</th><th>Full Name</th><th>Registered</th><th class="text-right">Action</th></tr></thead>
+        <tbody>
+        {% for u in pending %}
+        <tr class="border-b last:border-0">
+            <td class="py-2">{{ u.email }}</td>
+            <td>{{ u.full_name|default:"—" }}</td>
+            <td>{{ u.date_joined|date:"M d, Y H:i" }}</td>
+            <td class="text-right whitespace-nowrap">
+                <form method="post" action="{% url 'accounts:approve_user' u.id %}" class="inline">
+                    {% csrf_token %}
+                    <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded text-xs">Approve</button>
+                </form>
+                <form method="post" action="{% url 'accounts:reject_user' u.id %}" class="inline ml-2" onsubmit="return confirm('Reject this registration?');">
+                    {% csrf_token %}
+                    <button type="submit" class="bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1 rounded text-xs">Reject</button>
+                </form>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" class="py-4 text-center text-gray-400">No pending approvals.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div id="tab-approved" class="tab-panel hidden bg-white shadow rounded-lg p-5 overflow-x-auto">
+    <table class="w-full text-sm">
+        <thead class="text-left text-gray-500 border-b"><tr><th class="py-2">Email</th><th>Full Name</th><th>Joined</th><th>Status</th></tr></thead>
+        <tbody>
+        {% for u in approved %}
+        <tr class="border-b last:border-0">
+            <td class="py-2">{{ u.email }}</td>
+            <td>{{ u.full_name|default:"—" }}</td>
+            <td>{{ u.date_joined|date:"M d, Y" }}</td>
+            <td>{% if u.is_active %}<span class="text-emerald-600">Active</span>{% else %}<span class="text-gray-400">Deactivated</span>{% endif %}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" class="py-4 text-center text-gray-400">No approved users yet.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div id="tab-rejected" class="tab-panel hidden bg-white shadow rounded-lg p-5 overflow-x-auto">
+    <table class="w-full text-sm">
+        <thead class="text-left text-gray-500 border-b"><tr><th class="py-2">Email</th><th>Full Name</th><th>Registered</th></tr></thead>
+        <tbody>
+        {% for u in rejected %}
+        <tr class="border-b last:border-0">
+            <td class="py-2">{{ u.email }}</td>
+            <td>{{ u.full_name|default:"—" }}</td>
+            <td>{{ u.date_joined|date:"M d, Y" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="3" class="py-4 text-center text-gray-400">No rejected registrations.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+function showApprovalTab(name) {
+    document.querySelectorAll('.tab-panel').forEach(function(el) { el.classList.add('hidden'); });
+    document.querySelectorAll('.tab-btn').forEach(function(btn) {
+        btn.classList.remove('bg-emerald-600', 'text-white');
+        btn.classList.add('bg-gray-100', 'text-gray-600');
+    });
+    document.getElementById('tab-' + name).classList.remove('hidden');
+    var activeBtn = document.getElementById('tab-btn-' + name);
+    activeBtn.classList.add('bg-emerald-600', 'text-white');
+    activeBtn.classList.remove('bg-gray-100', 'text-gray-600');
+}
+</script>
+{% endblock %}
