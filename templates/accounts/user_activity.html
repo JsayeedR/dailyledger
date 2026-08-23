@@ -9,7 +9,7 @@
 <tbody>
 {% for a in activity %}
 <tr class="border-b last:border-0">
-<td class="py-2">{{ a.user.email }}</td>
+<td class="py-2"><a href="{% url 'accounts:user_profile' a.user.id %}" class="text-emerald-700 hover:underline">{{ a.user.email }}</a></td>
 <td>{{ a.sessions }}</td>
 <td>{{ a.total_minutes }} min</td>
 </tr>

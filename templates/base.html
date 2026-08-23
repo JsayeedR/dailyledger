@@ -51,7 +51,6 @@
                         <a href="{% url 'accounts:profile' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">{% trans "My Profile" %}</a>
                         <a href="{% url 'accounts:notification_preference' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">{% trans "Notification Preferences" %}</a>
                         <a href="{% url 'accounts:change_password' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">{% trans "Change Password" %}</a>
-                        <a href="{% url 'about' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">{% trans "About" %}</a>
                     </div>
                 </details>
 
@@ -69,6 +68,8 @@
                 </details>
                 {% endif %}
 
+                <a href="{% url 'about' %}" class="hover:underline">{% trans "About" %}</a>
+
                 <form action="{% url 'set_language' %}" method="post" class="inline-flex items-center">
                     {% csrf_token %}
                     <input name="next" type="hidden" value="{{ request.path }}">
@@ -81,7 +82,7 @@
                     {% endif %}
                 </form>
 
-                <span class="text-slate-300">{{ user.display_name }}</span>
+                <a href="{% url 'accounts:profile' %}" class="text-slate-300 hover:text-white hover:underline">{{ user.display_name }}</a>
                 <form method="post" action="{% url 'logout' %}" class="inline">
                     {% csrf_token %}
                     <button type="submit" class="hover:underline">{% trans "Logout" %}</button>
@@ -106,7 +107,6 @@
                     <a href="{% url 'accounts:profile' %}" class="hover:underline">{% trans "My Profile" %}</a>
                     <a href="{% url 'accounts:notification_preference' %}" class="hover:underline">{% trans "Notification Preferences" %}</a>
                     <a href="{% url 'accounts:change_password' %}" class="hover:underline">{% trans "Change Password" %}</a>
-                    <a href="{% url 'about' %}" class="hover:underline">{% trans "About" %}</a>
                 </div>
             </details>
 
@@ -124,6 +124,8 @@
             </details>
             {% endif %}
 
+            <a href="{% url 'about' %}" class="hover:underline">{% trans "About" %}</a>
+
             <form action="{% url 'set_language' %}" method="post">
                 {% csrf_token %}
                 <input name="next" type="hidden" value="{{ request.path }}">
@@ -136,7 +138,7 @@
                 {% endif %}
             </form>
 
-            <span class="text-slate-300">{{ user.display_name }}</span>
+            <a href="{% url 'accounts:profile' %}" class="text-slate-300 hover:text-white hover:underline">{{ user.display_name }}</a>
             <form method="post" action="{% url 'logout' %}">
                 {% csrf_token %}
                 <button type="submit" class="hover:underline text-left">{% trans "Logout" %}</button>

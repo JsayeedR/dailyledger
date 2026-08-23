@@ -18,5 +18,6 @@ urlpatterns = [
     path('audit-log/', views.audit_log_view, name='audit_log'),
     path('activity/', views.user_activity_view, name='user_activity'),
     path('users/', views.user_list, name='user_list'),
+    path('users/<uuid:user_id>/profile/', views.user_profile_view, name='user_profile'),
     path('users/<uuid:user_id>/toggle-active/', views.toggle_user_active, name='toggle_user_active'),
 ]

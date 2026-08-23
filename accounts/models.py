@@ -55,6 +55,9 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     date_joined = models.DateTimeField(default=timezone.now)
     last_login_ip = models.GenericIPAddressField(null=True, blank=True)
+    last_seen = models.DateTimeField(null=True, blank=True)
+    total_active_seconds = models.PositiveIntegerField(default=0)
+    session_count = models.PositiveIntegerField(default=0)
 
     objects = CustomUserManager()
 

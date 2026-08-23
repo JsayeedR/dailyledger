@@ -395,23 +395,12 @@ def audit_log_view(request):
 @login_required
 @user_passes_test(is_super_admin)
 def user_activity_view(request):
-    users = CustomUser.objects.filter(is_active=True)
-    activity = []
-    for u in users:
-        logs = AuditLog.objects.filter(actor=u, action__in=['LOGIN', 'LOGOUT']).order_by('created_at')
-        total = timedelta()
-        sessions = 0
-        open_login = None
-        for entry in logs:
-            if entry.action == 'LOGIN':
-                open_login = entry.created_at
-            elif entry.action == 'LOGOUT' and open_login:
-                total += entry.created_at - open_login
-                sessions += 1
-                open_login = None
-        if open_login:
-            total += timezone.now() - open_login
-        activity.append({'user': u, 'total_minutes': round(total.total_seconds() / 60, 1), 'sessions': sessions})
+    users = CustomUser.objects.filter(is_active=True).order_by('-total_active_seconds')
+    activity = [{
+        'user': u,
+        'total_minutes': round(u.total_active_seconds / 60, 1),
+        'sessions': u.session_count,
+    } for u in users]
     return render(request, 'accounts/user_activity.html', {'activity': activity})
 
 
@@ -436,3 +425,12 @@ def toggle_user_active(request, user_id):
         audit.log(actor=request.user, action=action, target_type='User', target_id=target.id, detail=target.email, request=request)
         messages.success(request, _('%(email)s has been %(status)s.') % {'email': target.email, 'status': _('reactivated') if target.is_active else _('deactivated')})
     return redirect('accounts:user_list')
+
+@login_required
+@user_passes_test(is_super_admin)
+def user_profile_view(request, user_id):
+    """Read-only view for a Super Admin to inspect any user's profile
+    and activity stats. Never exposes password data or lets the Super
+    Admin edit financial info -- that stays fully tenant-isolated."""
+    target = get_object_or_404(CustomUser, id=user_id)
+    return render(request, 'accounts/user_profile.html', {'target': target})

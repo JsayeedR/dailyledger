@@ -9,7 +9,7 @@
 <tbody>
 {% for u in users %}
 <tr class="border-b last:border-0">
-<td class="py-2">{{ u.email }}</td>
+<td class="py-2"><a href="{% url 'accounts:user_profile' u.id %}" class="text-emerald-700 hover:underline">{{ u.email }}</a></td>
 <td>{{ u.full_name|default:"—" }}</td>
 <td>{{ u.get_role_display }}</td>
 <td>
