@@ -37,3 +37,4 @@ dailyledger-apk/local.properties
 # IDE
 .vscode/
 .idea/
+*.patch
