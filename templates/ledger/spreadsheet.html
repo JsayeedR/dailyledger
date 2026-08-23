@@ -1,19 +1,24 @@
 {% extends "base.html" %}
+{% load i18n %}
 {% load ledger_extras %}
 {% block title %}Spreadsheet — DailyLedger{% endblock %}
 {% block content %}
-<div class="flex justify-between items-center mb-6">
-    <a href="?month={{ prev_month }}&year={{ prev_year }}" class="text-emerald-600 hover:underline">&larr; Prev</a>
+<div class="flex flex-wrap justify-between items-center mb-6 gap-3">
+    <a href="?month={{ prev_month }}&year={{ prev_year }}" class="no-print text-emerald-600 hover:underline">{% trans "&larr; Prev" %}</a>
     <h1 class="text-2xl font-semibold">{{ month_name }} {{ year }} — Spreadsheet View</h1>
-    <a href="?month={{ next_month }}&year={{ next_year }}" class="text-emerald-600 hover:underline">Next &rarr;</a>
+    <div class="flex items-center gap-3">
+        <a href="?month={{ next_month }}&year={{ next_year }}" class="no-print text-emerald-600 hover:underline">{% trans "Next &rarr;" %}</a>
+        <button onclick="window.print()" class="no-print bg-slate-800 hover:bg-slate-900 text-white px-3 py-1.5 rounded text-sm">{% trans "Print / PDF" %}</button>
+        <button onclick="downloadSpreadsheetExcel()" class="no-print bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded text-sm">{% trans "Download Excel" %}</button>
+    </div>
 </div>
 <div class="bg-white shadow rounded-lg p-4 overflow-x-auto">
-<table class="text-xs border-collapse whitespace-nowrap">
+<table id="spreadsheet-table" class="text-xs border-collapse whitespace-nowrap">
 <thead>
 <tr class="bg-gray-50">
-<th class="border px-2 py-1 text-left sticky left-0 bg-gray-50">Category</th>
+<th class="border px-2 py-1 text-left sticky left-0 bg-gray-50">{% trans "Category" %}</th>
 {% for d in day_range %}<th class="border px-2 py-1">{{ d }}</th>{% endfor %}
-<th class="border px-2 py-1 font-semibold">Total</th>
+<th class="border px-2 py-1 font-semibold">{% trans "Total" %}</th>
 </tr>
 </thead>
 <tbody>
@@ -25,16 +30,25 @@
 </tr>
 {% endfor %}
 <tr class="bg-emerald-50">
-<td class="border px-2 py-1 text-left sticky left-0 bg-emerald-50 font-semibold">Income</td>
+<td class="border px-2 py-1 text-left sticky left-0 bg-emerald-50 font-semibold">{% trans "Income" %}</td>
 {% for d in day_range %}<td class="border px-2 py-1 text-center">{{ daily_income|dict_get:d }}</td>{% endfor %}
 <td class="border px-2 py-1 text-center font-semibold">{{ monthly_income }}</td>
 </tr>
 <tr class="bg-gray-100 font-semibold">
-<td class="border px-2 py-1 text-left sticky left-0 bg-gray-100">Daily Total</td>
+<td class="border px-2 py-1 text-left sticky left-0 bg-gray-100">{% trans "Daily Total" %}</td>
 {% for d in day_range %}<td class="border px-2 py-1 text-center">{{ daily_totals|dict_get:d }}</td>{% endfor %}
 <td class="border px-2 py-1 text-center">{{ monthly_total }}</td>
 </tr>
 </tbody>
 </table>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script>
+function downloadSpreadsheetExcel() {
+    const table = document.getElementById('spreadsheet-table');
+    const wb = XLSX.utils.table_to_book(table, { sheet: "{{ month_name }} {{ year }}".slice(0, 31) });
+    XLSX.writeFile(wb, "spreadsheet-{{ month_name }}-{{ year }}.xlsx");
+}
+</script>
 {% endblock %}

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load i18n %}
 {% block title %}Set Up Your Workspace — DailyLedger{% endblock %}
 {% block container_width %}max-w-4xl{% endblock %}
 {% block content %}
@@ -18,35 +19,35 @@
     <form method="post">
         {% csrf_token %}
 
-        <h2 class="font-semibold mb-2">Expense Categories</h2>
+        <h2 class="font-semibold mb-2">{% trans "Expense Categories" %}</h2>
         <div class="grid grid-cols-2 gap-2 mb-6 text-sm">
             {% for name, locked in expense_categories %}
             <label class="flex items-center gap-2 {% if locked %}text-gray-400{% endif %}">
                 <input type="checkbox" name="expense_categories" value="{{ name }}" {% if locked %}checked disabled{% else %}checked{% endif %}>
                 {% if locked %}<input type="hidden" name="expense_categories" value="{{ name }}">{% endif %}
-                {{ name }}{% if locked %} <span class="text-xs">(existing)</span>{% endif %}
+                {{ name }}{% if locked %} <span class="text-xs">{% trans "(existing)" %}</span>{% endif %}
             </label>
             {% endfor %}
         </div>
 
-        <h2 class="font-semibold mb-2">Income Categories</h2>
+        <h2 class="font-semibold mb-2">{% trans "Income Categories" %}</h2>
         <div class="grid grid-cols-2 gap-2 mb-6 text-sm">
             {% for name, locked in income_categories %}
             <label class="flex items-center gap-2 {% if locked %}text-gray-400{% endif %}">
                 <input type="checkbox" name="income_categories" value="{{ name }}" {% if locked %}checked disabled{% else %}checked{% endif %}>
                 {% if locked %}<input type="hidden" name="income_categories" value="{{ name }}">{% endif %}
-                {{ name }}{% if locked %} <span class="text-xs">(existing)</span>{% endif %}
+                {{ name }}{% if locked %} <span class="text-xs">{% trans "(existing)" %}</span>{% endif %}
             </label>
             {% endfor %}
         </div>
 
-        <h2 class="font-semibold mb-2">Payment Methods</h2>
+        <h2 class="font-semibold mb-2">{% trans "Payment Methods" %}</h2>
         <div class="grid grid-cols-2 gap-2 mb-6 text-sm">
             {% for name, locked in payment_methods %}
             <label class="flex items-center gap-2 {% if locked %}text-gray-400{% endif %}">
                 <input type="checkbox" name="payment_methods" value="{{ name }}" {% if locked %}checked disabled{% else %}checked{% endif %}>
                 {% if locked %}<input type="hidden" name="payment_methods" value="{{ name }}">{% endif %}
-                {{ name }}{% if locked %} <span class="text-xs">(existing)</span>{% endif %}
+                {{ name }}{% if locked %} <span class="text-xs">{% trans "(existing)" %}</span>{% endif %}
             </label>
             {% endfor %}
         </div>

@@ -1,15 +1,16 @@
 {% extends "base.html" %}
+{% load i18n %}
 {% block title %}Delete Budget — DailyLedger{% endblock %}
 {% block container_width %}max-w-3xl{% endblock %}
 {% block content %}
-<h1 class="text-2xl font-semibold mb-6">Remove Budget?</h1>
+<h1 class="text-2xl font-semibold mb-6">{% trans "Remove Budget?" %}</h1>
 <div class="bg-white shadow rounded-lg p-6 max-w-lg mx-auto">
     <p class="mb-4">Remove the {{ budget.category.name }} budget for {{ budget.month }}/{{ budget.year }}?</p>
     <form method="post">
         {% csrf_token %}
         <div class="flex gap-3">
-            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded font-medium">Yes, Remove</button>
-            <a href="{% url 'ledger:budget_list' %}" class="bg-gray-100 hover:bg-gray-200 px-5 py-2 rounded font-medium">Cancel</a>
+            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded font-medium">{% trans "Yes, Remove" %}</button>
+            <a href="{% url 'ledger:budget_list' %}" class="bg-gray-100 hover:bg-gray-200 px-5 py-2 rounded font-medium">{% trans "Cancel" %}</a>
         </div>
     </form>
 </div>

@@ -1,0 +1,285 @@
+--- a/templates/base.html	2026-08-23 08:10:28.000000000 +0000
++++ b/templates/base.html	2026-08-23 02:19:48.972761760 +0000
+@@ -7,6 +7,14 @@
+     <title>{% block title %}DailyLedger{% endblock %}</title>
+     <script src="https://cdn.tailwindcss.com"></script>
+     <style>details > summary { list-style: none; } details > summary::-webkit-details-marker { display: none; }</style>
++    <style>
++        @media print {
++            nav, .no-print { display: none !important; }
++            body { background: #fff !important; }
++            .shadow, .shadow-lg { box-shadow: none !important; }
++            main, .max-w-7xl { max-width: 100% !important; }
++        }
++    </style>
+     {% block extra_head %}{% endblock %}
+ </head>
+ <body class="bg-gray-50">
+--- a/templates/ledger/spreadsheet.html	2026-08-23 08:03:50.000000000 +0000
++++ b/templates/ledger/spreadsheet.html	2026-08-23 02:20:00.352593282 +0000
+@@ -3,13 +3,17 @@
+ {% load ledger_extras %}
+ {% block title %}Spreadsheet — DailyLedger{% endblock %}
+ {% block content %}
+-<div class="flex justify-between items-center mb-6">
+-    <a href="?month={{ prev_month }}&year={{ prev_year }}" class="text-emerald-600 hover:underline">{% trans "&larr; Prev" %}</a>
++<div class="flex flex-wrap justify-between items-center mb-6 gap-3">
++    <a href="?month={{ prev_month }}&year={{ prev_year }}" class="no-print text-emerald-600 hover:underline">{% trans "&larr; Prev" %}</a>
+     <h1 class="text-2xl font-semibold">{{ month_name }} {{ year }} — Spreadsheet View</h1>
+-    <a href="?month={{ next_month }}&year={{ next_year }}" class="text-emerald-600 hover:underline">{% trans "Next &rarr;" %}</a>
++    <div class="flex items-center gap-3">
++        <a href="?month={{ next_month }}&year={{ next_year }}" class="no-print text-emerald-600 hover:underline">{% trans "Next &rarr;" %}</a>
++        <button onclick="window.print()" class="no-print bg-slate-800 hover:bg-slate-900 text-white px-3 py-1.5 rounded text-sm">{% trans "Print / PDF" %}</button>
++        <button onclick="downloadSpreadsheetExcel()" class="no-print bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded text-sm">{% trans "Download Excel" %}</button>
++    </div>
+ </div>
+ <div class="bg-white shadow rounded-lg p-4 overflow-x-auto">
+-<table class="text-xs border-collapse whitespace-nowrap">
++<table id="spreadsheet-table" class="text-xs border-collapse whitespace-nowrap">
+ <thead>
+ <tr class="bg-gray-50">
+ <th class="border px-2 py-1 text-left sticky left-0 bg-gray-50">{% trans "Category" %}</th>
+@@ -38,4 +42,13 @@
+ </tbody>
+ </table>
+ </div>
++
++<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
++<script>
++function downloadSpreadsheetExcel() {
++    const table = document.getElementById('spreadsheet-table');
++    const wb = XLSX.utils.table_to_book(table, { sheet: "{{ month_name }} {{ year }}".slice(0, 31) });
++    XLSX.writeFile(wb, "spreadsheet-{{ month_name }}-{{ year }}.xlsx");
++}
++</script>
+ {% endblock %}
+--- a/templates/ledger/reports.html	2026-08-23 08:03:50.000000000 +0000
++++ b/templates/ledger/reports.html	2026-08-23 02:20:12.449956801 +0000
+@@ -4,15 +4,16 @@
+ {% block content %}
+ <div class="flex flex-wrap justify-between items-center mb-6 gap-3">
+     <h1 class="text-2xl font-semibold">Reports — {{ label }}</h1>
+-    <div class="flex flex-wrap gap-2 text-sm">
++    <div class="flex flex-wrap gap-2 text-sm no-print">
+         <a href="?range=week" class="px-3 py-1.5 rounded {% if range_type == 'week' %}bg-emerald-600 text-white{% else %}bg-gray-100 hover:bg-gray-200{% endif %}">{% trans "Last 7 Days" %}</a>
+         <a href="?range=15days" class="px-3 py-1.5 rounded {% if range_type == '15days' %}bg-emerald-600 text-white{% else %}bg-gray-100 hover:bg-gray-200{% endif %}">{% trans "Last 15 Days" %}</a>
+         <a href="?range=month" class="px-3 py-1.5 rounded {% if range_type == 'month' %}bg-emerald-600 text-white{% else %}bg-gray-100 hover:bg-gray-200{% endif %}">{% trans "This Month" %}</a>
+         <a href="?range=year" class="px-3 py-1.5 rounded {% if range_type == 'year' %}bg-emerald-600 text-white{% else %}bg-gray-100 hover:bg-gray-200{% endif %}">{% trans "This Year" %}</a>
++        <button onclick="window.print()" class="px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-900 text-white">{% trans "Print / PDF" %}</button>
+     </div>
+ </div>
+ 
+-<form method="get" class="bg-white shadow rounded-lg p-4 mb-6 flex flex-wrap items-end gap-3 text-sm">
++<form method="get" class="no-print bg-white shadow rounded-lg p-4 mb-6 flex flex-wrap items-end gap-3 text-sm">
+     <input type="hidden" name="range" value="custom">
+     <div>
+         <label class="block text-gray-500 mb-1">{% trans "From" %}</label>
+@@ -48,14 +49,14 @@
+     <div class="bg-white shadow rounded-lg p-5">
+         <div class="flex justify-between items-center mb-3">
+             <h2 class="font-semibold">{% trans "Income vs Expense" %}</h2>
+-            <button onclick="downloadChart('incomeExpenseChart','income-vs-expense.jpg')" class="text-xs text-slate-500 hover:text-slate-800 underline">{% trans "Download JPG" %}</button>
++            <button onclick="downloadChart('incomeExpenseChart','income-vs-expense.jpg')" class="no-print text-xs text-slate-500 hover:text-slate-800 underline">{% trans "Download JPG" %}</button>
+         </div>
+         <canvas id="incomeExpenseChart" height="220"></canvas>
+     </div>
+     <div class="bg-white shadow rounded-lg p-5">
+         <div class="flex justify-between items-center mb-3">
+             <h2 class="font-semibold">{% trans "Expense by Category" %}</h2>
+-            {% if category_labels %}<button onclick="downloadChart('categoryChart','expense-by-category.jpg')" class="text-xs text-slate-500 hover:text-slate-800 underline">{% trans "Download JPG" %}</button>{% endif %}
++            {% if category_labels %}<button onclick="downloadChart('categoryChart','expense-by-category.jpg')" class="no-print text-xs text-slate-500 hover:text-slate-800 underline">{% trans "Download JPG" %}</button>{% endif %}
+         </div>
+         {% if category_labels %}
+         <canvas id="categoryChart" height="220"></canvas>
+@@ -68,7 +69,7 @@
+ <div class="bg-white shadow rounded-lg p-5">
+     <div class="flex justify-between items-center mb-3">
+         <h2 class="font-semibold">{% trans "Income vs Expense vs Savings" %}</h2>
+-        <button onclick="downloadChart('savingsChart','income-expense-savings.jpg')" class="text-xs text-slate-500 hover:text-slate-800 underline">{% trans "Download JPG" %}</button>
++        <button onclick="downloadChart('savingsChart','income-expense-savings.jpg')" class="no-print text-xs text-slate-500 hover:text-slate-800 underline">{% trans "Download JPG" %}</button>
+     </div>
+     <canvas id="savingsChart" height="180"></canvas>
+ </div>
+--- a/templates/ledger/detail_reports.html	2026-08-23 08:03:50.000000000 +0000
++++ b/templates/ledger/detail_reports.html	2026-08-23 02:20:26.229093601 +0000
+@@ -4,15 +4,16 @@
+ {% block content %}
+ <div class="flex flex-wrap justify-between items-center mb-6 gap-3">
+     <h1 class="text-2xl font-semibold">Detail Reports — {{ label }}</h1>
+-    <div class="flex flex-wrap gap-2 text-sm">
++    <div class="flex flex-wrap gap-2 text-sm no-print">
+         <a href="?range=week" class="px-3 py-1.5 rounded {% if range_type == 'week' %}bg-emerald-600 text-white{% else %}bg-gray-100 hover:bg-gray-200{% endif %}">{% trans "Last 7 Days" %}</a>
+         <a href="?range=15days" class="px-3 py-1.5 rounded {% if range_type == '15days' %}bg-emerald-600 text-white{% else %}bg-gray-100 hover:bg-gray-200{% endif %}">{% trans "Last 15 Days" %}</a>
+         <a href="?range=month" class="px-3 py-1.5 rounded {% if range_type == 'month' %}bg-emerald-600 text-white{% else %}bg-gray-100 hover:bg-gray-200{% endif %}">{% trans "This Month" %}</a>
+         <a href="?range=year" class="px-3 py-1.5 rounded {% if range_type == 'year' %}bg-emerald-600 text-white{% else %}bg-gray-100 hover:bg-gray-200{% endif %}">{% trans "This Year" %}</a>
++        <button onclick="window.print()" class="px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-900 text-white">{% trans "Print / PDF" %}</button>
+     </div>
+ </div>
+ 
+-<form method="get" class="bg-white shadow rounded-lg p-4 mb-6 flex flex-wrap items-end gap-3 text-sm">
++<form method="get" class="no-print bg-white shadow rounded-lg p-4 mb-6 flex flex-wrap items-end gap-3 text-sm">
+     <input type="hidden" name="range" value="custom">
+     <div>
+         <label class="block text-gray-500 mb-1">{% trans "From" %}</label>
+@@ -44,7 +45,7 @@
+     </div>
+ </div>
+ 
+-<div class="flex gap-2 mb-4 overflow-x-auto">
++<div class="no-print flex gap-2 mb-4 overflow-x-auto">
+     <button onclick="showDetailTab('expense')" id="tab-btn-expense" class="tab-btn px-4 py-2 text-sm font-medium rounded-full bg-emerald-600 text-white whitespace-nowrap">{% trans "Expense Categories" %}</button>
+     <button onclick="showDetailTab('income')" id="tab-btn-income" class="tab-btn px-4 py-2 text-sm font-medium rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 whitespace-nowrap">{% trans "Income Sources" %}</button>
+     <button onclick="showDetailTab('payment')" id="tab-btn-payment" class="tab-btn px-4 py-2 text-sm font-medium rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 whitespace-nowrap">{% trans "Payment Methods" %}</button>
+@@ -55,7 +56,7 @@
+         <div class="bg-white shadow rounded-lg p-5">
+             <div class="flex justify-between items-center mb-3">
+                 <h2 class="font-semibold">{% trans "Expense Category Distribution" %}</h2>
+-                {% if expense_labels %}<button onclick="downloadChart('expenseChart','expense-categories.jpg')" class="text-xs text-slate-500 hover:text-slate-800 underline">{% trans "Download JPG" %}</button>{% endif %}
++                {% if expense_labels %}<button onclick="downloadChart('expenseChart','expense-categories.jpg')" class="no-print text-xs text-slate-500 hover:text-slate-800 underline">{% trans "Download JPG" %}</button>{% endif %}
+             </div>
+             {% if expense_labels %}<canvas id="expenseChart" height="220"></canvas>{% else %}<p class="text-gray-400 text-sm">{% trans "No expense data in this range." %}</p>{% endif %}
+         </div>
+@@ -85,7 +86,7 @@
+         <div class="bg-white shadow rounded-lg p-5">
+             <div class="flex justify-between items-center mb-3">
+                 <h2 class="font-semibold">{% trans "Income Source Distribution" %}</h2>
+-                {% if income_labels %}<button onclick="downloadChart('incomeChart','income-sources.jpg')" class="text-xs text-slate-500 hover:text-slate-800 underline">{% trans "Download JPG" %}</button>{% endif %}
++                {% if income_labels %}<button onclick="downloadChart('incomeChart','income-sources.jpg')" class="no-print text-xs text-slate-500 hover:text-slate-800 underline">{% trans "Download JPG" %}</button>{% endif %}
+             </div>
+             {% if income_labels %}<canvas id="incomeChart" height="220"></canvas>{% else %}<p class="text-gray-400 text-sm">{% trans "No income data in this range." %}</p>{% endif %}
+         </div>
+@@ -115,7 +116,7 @@
+         <div class="bg-white shadow rounded-lg p-5">
+             <div class="flex justify-between items-center mb-3">
+                 <h2 class="font-semibold">{% trans "Income vs Expense by Method" %}</h2>
+-                {% if payment_labels %}<button onclick="downloadChart('paymentChart','payment-methods.jpg')" class="text-xs text-slate-500 hover:text-slate-800 underline">{% trans "Download JPG" %}</button>{% endif %}
++                {% if payment_labels %}<button onclick="downloadChart('paymentChart','payment-methods.jpg')" class="no-print text-xs text-slate-500 hover:text-slate-800 underline">{% trans "Download JPG" %}</button>{% endif %}
+             </div>
+             {% if payment_labels %}<canvas id="paymentChart" height="220"></canvas>{% else %}<p class="text-gray-400 text-sm">{% trans "No payment method data in this range." %}</p>{% endif %}
+         </div>
+--- a/templates/ledger/budgets.html	2026-08-23 08:03:50.000000000 +0000
++++ b/templates/ledger/budgets.html	2026-08-23 02:20:45.992781562 +0000
+@@ -7,6 +7,32 @@
+     <a href="{% url 'ledger:add_budget' %}" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded text-sm">{% trans "+ New Budget" %}</a>
+ </div>
+ 
++<details class="bg-white shadow rounded-lg p-5 mb-6 text-sm">
++    <summary class="cursor-pointer font-semibold text-slate-700">{% trans "How budgets work" %} <span class="text-gray-400 font-normal">(English + বাংলা)</span></summary>
++    <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
++        <div>
++            <h3 class="font-semibold text-gray-700 mb-2">English</h3>
++            <ul class="list-disc list-inside space-y-1.5 text-gray-600">
++                <li>A budget is a spending <strong>limit you set for one expense category</strong> (e.g. Groceries, Transport), for one specific month.</li>
++                <li><strong>Spent</strong> is the total of all expense transactions logged in that category during that month — it updates automatically as you add transactions, it's never entered by hand.</li>
++                <li><strong>% used</strong> = Spent ÷ Limit × 100. This is what the progress bar shows.</li>
++                <li>The bar turns <span class="text-emerald-600 font-medium">green</span> under 80% used, <span class="text-amber-600 font-medium">amber</span> from 80–99%, and <span class="text-red-600 font-medium">red</span> at 100% or more, with a warning label at each stage.</li>
++                <li>Budgets are <strong>month-specific and do not roll over</strong> — this page always shows the current month, and you need to add a new budget for a category each month you want to track it.</li>
++            </ul>
++        </div>
++        <div lang="bn">
++            <h3 class="font-semibold text-gray-700 mb-2">বাংলা</h3>
++            <ul class="list-disc list-inside space-y-1.5 text-gray-600">
++                <li>বাজেট মানে হলো একটি নির্দিষ্ট মাসের জন্য একটি খরচ ক্যাটাগরিতে (যেমন: বাজার খরচ, যাতায়াত) আপনার নির্ধারণ করা <strong>খরচের সীমা</strong>।</li>
++                <li><strong>খরচ হয়েছে (Spent)</strong> মানে সেই মাসে সেই ক্যাটাগরিতে যোগ করা সব খরচের লেনদেনের যোগফল — এটি আপনি হাতে লেখেন না, নতুন লেনদেন যোগ করলেই স্বয়ংক্রিয়ভাবে আপডেট হয়।</li>
++                <li><strong>% ব্যবহৃত</strong> = খরচ ÷ সীমা × ১০০। প্রোগ্রেস বারে এটাই দেখানো হয়।</li>
++                <li>৮০%-এর নিচে বার <span class="text-emerald-600 font-medium">সবুজ</span>, ৮০–৯৯%-এ <span class="text-amber-600 font-medium">হলুদ</span>, আর ১০০% বা তার বেশি হলে <span class="text-red-600 font-medium">লাল</span> হয়ে যায়, সাথে একটি সতর্কবার্তাও দেখানো হয়।</li>
++                <li>বাজেট <strong>শুধু নির্দিষ্ট মাসের জন্যই প্রযোজ্য, এটি পরের মাসে স্বয়ংক্রিয়ভাবে চলে আসে না</strong> — এই পাতায় সবসময় চলতি মাসের বাজেট দেখানো হয়, তাই প্রতি মাসে ট্র্যাক করতে চাইলে নতুন করে বাজেট যোগ করতে হবে।</li>
++            </ul>
++        </div>
++    </div>
++</details>
++
+ <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+     {% for b in budgets %}
+     <div class="bg-white shadow rounded-lg p-5">
+--- a/accounts/views.py	2026-08-23 08:03:50.000000000 +0000
++++ b/accounts/views.py	2026-08-23 02:24:55.716263502 +0000
+@@ -1,5 +1,6 @@
+ from datetime import timedelta
+ from django.shortcuts import render, redirect, get_object_or_404
++from django.urls import reverse
+ from django.contrib import messages
+ from django.utils.translation import gettext as _
+ from django.contrib.auth import login as auth_login, logout as auth_logout, update_session_auth_hash, get_user_model
+@@ -72,6 +73,23 @@
+             user.approval_status = ApprovalStatus.PENDING
+             user.save()
+             audit.log(actor=user, action='USER_REGISTER', target_type='User', target_id=user.id, detail=user.email, request=request)
++
++            review_url = request.build_absolute_uri(reverse('accounts:user_approvals'))
++            subject = 'New DailyLedger signup pending approval'
++            email_body = (
++                f'A new user has signed up and is waiting for approval.\n\n'
++                f'Name: {user.full_name or "-"}\n'
++                f'Email: {user.email}\n\n'
++                f'Review it here: {review_url}'
++            )
++            telegram_text = (
++                f'🆕 New DailyLedger signup pending approval\n'
++                f'Name: {user.full_name or "-"}\n'
++                f'Email: {user.email}\n'
++                f'{review_url}'
++            )
++            notifications.notify_super_admins(subject, email_body, telegram_text, actor=user)
++
+             return render(request, 'registration/pending_approval.html', {'email': user.email})
+     else:
+         form = RegistrationForm()
+@@ -161,7 +179,7 @@
+ def notification_preference_view(request):
+     """Lets any user choose their summary frequency + channels. Every change
+     is queued as a request and only takes effect once a Super Admin approves it."""
+-    pref, _ = NotificationPreference.objects.get_or_create(user=request.user)
++    pref, _created = NotificationPreference.objects.get_or_create(user=request.user)
+     settings_obj = NotificationSettings.get_solo()
+ 
+     if request.method == 'POST':
+@@ -178,6 +196,21 @@
+                        f"(email={pref.requested_email_enabled}, telegram={pref.requested_telegram_enabled})",
+                 request=request,
+             )
++
++            review_url = request.build_absolute_uri(reverse('accounts:preference_approvals'))
++            subject = 'New notification preference request pending approval'
++            email_body = (
++                f'{request.user.full_name or request.user.email} requested a change to their '
++                f'notification preferences and it is waiting for approval.\n\n'
++                f'Review it here: {review_url}'
++            )
++            telegram_text = (
++                f'🆕 Notification preference change pending approval\n'
++                f'User: {request.user.email}\n'
++                f'{review_url}'
++            )
++            notifications.notify_super_admins(subject, email_body, telegram_text, actor=request.user)
++
+             messages.success(request, _('Your request was submitted and is pending Super Admin approval.'))
+             return redirect('accounts:notification_preference')
+     else:
+--- a/accounts/notifications.py	2026-08-23 03:08:30.000000000 +0000
++++ b/accounts/notifications.py	2026-08-23 02:23:44.170448525 +0000
+@@ -5,6 +5,24 @@
+ from . import audit
+ 
+ 
++def notify_super_admins(subject, email_body, telegram_text=None, actor=None):
++    """Alerts every active Super Admin by email and Telegram about something
++    that needs their attention (a new pending signup, a pending preference
++    change request, etc). Called once per event by the caller — this function
++    itself doesn't dedupe, so callers should only invoke it right when the
++    item first becomes pending, not on every page view."""
++    from .models import CustomUser, Role, ApprovalStatus, NotificationSettings
++
++    settings_obj = NotificationSettings.get_solo()
++    admins = CustomUser.objects.filter(role=Role.SUPER_ADMIN, approval_status=ApprovalStatus.APPROVED, is_active=True)
++
++    for admin in admins:
++        if admin.email:
++            send_email(settings_obj, admin.email, subject, email_body, actor=actor)
++        if admin.telegram_id:
++            send_telegram(settings_obj, admin.telegram_id, telegram_text or email_body, actor=actor)
++
++
+ def send_email(settings_obj, to_email, subject, body, actor=None):
+     if not settings_obj.is_email_configured():
+         audit.log(

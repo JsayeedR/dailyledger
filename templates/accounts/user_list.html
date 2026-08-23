@@ -1,10 +1,11 @@
 {% extends "base.html" %}
+{% load i18n %}
 {% block title %}All Users — DailyLedger{% endblock %}
 {% block content %}
-<h1 class="text-2xl font-semibold mb-6">All Users</h1>
+<h1 class="text-2xl font-semibold mb-6">{% trans "All Users" %}</h1>
 <div class="bg-white shadow rounded-lg p-5 overflow-x-auto">
 <table class="w-full text-sm">
-<thead class="text-left text-gray-500 border-b"><tr><th class="py-2">Email</th><th>Full Name</th><th>Role</th><th>Status</th><th>Joined</th><th class="text-right">Action</th></tr></thead>
+<thead class="text-left text-gray-500 border-b"><tr><th class="py-2">{% trans "Email" %}</th><th>{% trans "Full Name" %}</th><th>{% trans "Role" %}</th><th>{% trans "Status" %}</th><th>{% trans "Joined" %}</th><th class="text-right">{% trans "Action" %}</th></tr></thead>
 <tbody>
 {% for u in users %}
 <tr class="border-b last:border-0">
@@ -12,10 +13,10 @@
 <td>{{ u.full_name|default:"—" }}</td>
 <td>{{ u.get_role_display }}</td>
 <td>
-    {% if u.approval_status == 'PENDING' %}<span class="text-amber-600">Pending</span>
-    {% elif u.approval_status == 'REJECTED' %}<span class="text-red-500">Rejected</span>
-    {% elif u.is_active %}<span class="text-emerald-600">Active</span>
-    {% else %}<span class="text-gray-400">Deactivated</span>{% endif %}
+    {% if u.approval_status == 'PENDING' %}<span class="text-amber-600">{% trans "Pending" %}</span>
+    {% elif u.approval_status == 'REJECTED' %}<span class="text-red-500">{% trans "Rejected" %}</span>
+    {% elif u.is_active %}<span class="text-emerald-600">{% trans "Active" %}</span>
+    {% else %}<span class="text-gray-400">{% trans "Deactivated" %}</span>{% endif %}
 </td>
 <td>{{ u.date_joined|date:"M d, Y" }}</td>
 <td class="text-right">
@@ -30,7 +31,7 @@
 </td>
 </tr>
 {% empty %}
-<tr><td colspan="6" class="py-4 text-center text-gray-400">No users yet.</td></tr>
+<tr><td colspan="6" class="py-4 text-center text-gray-400">{% trans "No users yet." %}</td></tr>
 {% endfor %}
 </tbody>
 </table>

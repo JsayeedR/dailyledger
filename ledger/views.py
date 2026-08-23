@@ -4,6 +4,7 @@ from datetime import date as date_cls, timedelta
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.utils.translation import gettext as _
 from django.utils import timezone
 from django.db.models import Sum, Q, Count
 from .models import Transaction, TransactionType, Budget, Category, PaymentMethod
@@ -94,7 +95,7 @@ def add_transaction(request):
             txn.tenant = tenant
             txn.save()
             audit.log(actor=request.user, action='TRANSACTION_CREATE', target_type='Transaction', target_id=txn.id, request=request)
-            messages.success(request, 'Transaction added successfully.')
+            messages.success(request, _('Transaction added successfully.'))
             return redirect('ledger:dashboard')
     else:
         form = TransactionForm(tenant=tenant, initial={'date': timezone.localdate()})
@@ -110,7 +111,7 @@ def edit_transaction(request, pk):
         if form.is_valid():
             form.save()
             audit.log(actor=request.user, action='TRANSACTION_UPDATE', target_type='Transaction', target_id=txn.id, request=request)
-            messages.success(request, 'Transaction updated successfully.')
+            messages.success(request, _('Transaction updated successfully.'))
             return redirect('ledger:transaction_list')
     else:
         form = TransactionForm(instance=txn, tenant=tenant)
@@ -125,7 +126,7 @@ def delete_transaction(request, pk):
         txn_id = txn.id
         txn.delete()
         audit.log(actor=request.user, action='TRANSACTION_DELETE', target_type='Transaction', target_id=txn_id, request=request)
-        messages.success(request, 'Transaction deleted.')
+        messages.success(request, _('Transaction deleted.'))
         return redirect('ledger:transaction_list')
     return render(request, 'ledger/confirm_delete.html', {'txn': txn})
 
@@ -159,7 +160,7 @@ def add_budget(request):
             budget.tenant = tenant
             budget.save()
             audit.log(actor=request.user, action='BUDGET_CREATE', target_type='Budget', target_id=budget.id, request=request)
-            messages.success(request, 'Budget saved.')
+            messages.success(request, _('Budget saved.'))
             return redirect('ledger:budget_list')
     else:
         form = BudgetForm(tenant=tenant, initial={'month': today.month, 'year': today.year})
@@ -174,7 +175,7 @@ def delete_budget(request, pk):
         budget_id = budget.id
         budget.delete()
         audit.log(actor=request.user, action='BUDGET_DELETE', target_type='Budget', target_id=budget_id, request=request)
-        messages.success(request, 'Budget removed.')
+        messages.success(request, _('Budget removed.'))
         return redirect('ledger:budget_list')
     return render(request, 'ledger/confirm_delete_budget.html', {'budget': budget})
 
@@ -440,9 +441,9 @@ def add_category(request):
         cat_type = request.POST.get('type')
         if name and cat_type in (TransactionType.EXPENSE, TransactionType.INCOME):
             Category.objects.get_or_create(tenant=tenant, type=cat_type, name=name, parent=None)
-            messages.success(request, f'Category "{name}" added.')
+            messages.success(request, _('Category "%(name)s" added.') % {'name': name})
         else:
-            messages.error(request, 'Please provide a valid name.')
+            messages.error(request, _('Please provide a valid name.'))
     return redirect('ledger:manage_settings')
 
 
@@ -463,9 +464,9 @@ def add_payment_method(request):
         name = request.POST.get('name', '').strip()
         if name:
             PaymentMethod.objects.get_or_create(tenant=tenant, name=name)
-            messages.success(request, f'Payment method "{name}" added.')
+            messages.success(request, _('Payment method "%(name)s" added.') % {'name': name})
         else:
-            messages.error(request, 'Please provide a name.')
+            messages.error(request, _('Please provide a name.'))
     return redirect('ledger:manage_settings')
 
 

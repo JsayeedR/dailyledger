@@ -1,11 +1,20 @@
+{% load i18n %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ LANGUAGE_CODE }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}DailyLedger{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>details > summary { list-style: none; } details > summary::-webkit-details-marker { display: none; }</style>
+    <style>
+        @media print {
+            nav, .no-print { display: none !important; }
+            body { background: #fff !important; }
+            .shadow, .shadow-lg { box-shadow: none !important; }
+            main, .max-w-7xl { max-width: 100% !important; }
+        }
+    </style>
     {% block extra_head %}{% endblock %}
 </head>
 <body class="bg-gray-50">
@@ -26,87 +35,111 @@
                 </svg>
             </button>
             <div class="hidden md:flex gap-4 items-center text-sm">
-                <a href="{% url 'ledger:add_transaction' %}" class="bg-emerald-600 hover:bg-emerald-700 px-3 py-1.5 rounded font-medium">+ Add</a>
-                <a href="{% url 'ledger:dashboard' %}" class="hover:underline">Dashboard</a>
-                <a href="{% url 'ledger:transaction_list' %}" class="hover:underline">All Transactions</a>
-                <a href="{% url 'ledger:reports' %}" class="hover:underline">Reports</a>
+                <a href="{% url 'ledger:add_transaction' %}" class="bg-emerald-600 hover:bg-emerald-700 px-3 py-1.5 rounded font-medium">+ {% trans "Add" %}</a>
+                <a href="{% url 'ledger:dashboard' %}" class="hover:underline">{% trans "Dashboard" %}</a>
+                <a href="{% url 'ledger:transaction_list' %}" class="hover:underline">{% trans "All Transactions" %}</a>
+                <a href="{% url 'ledger:reports' %}" class="hover:underline">{% trans "Reports" %}</a>
 
                 <details class="relative">
-                    <summary class="cursor-pointer hover:underline select-none">Others ▾</summary>
+                    <summary class="cursor-pointer hover:underline select-none">{% trans "Others" %} ▾</summary>
                     <div class="absolute right-0 mt-2 w-48 bg-white text-slate-800 rounded shadow-lg py-2 z-20">
-                        <a href="{% url 'ledger:calendar' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">Calendar</a>
-                        <a href="{% url 'ledger:spreadsheet' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">Spreadsheet</a>
-                        <a href="{% url 'ledger:budget_list' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">Budgets</a>
-                        <a href="{% url 'ledger:detail_reports' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">Detail Reports</a>
-                        <a href="{% url 'ledger:manage_settings' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">Manage Categories</a>
-                        <a href="{% url 'accounts:profile' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">My Profile</a>
-                        <a href="{% url 'accounts:notification_preference' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">Notification Preferences</a>
-                        <a href="{% url 'accounts:change_password' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">Change Password</a>
-                        <a href="{% url 'about' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">About</a>
+                        <a href="{% url 'ledger:calendar' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">{% trans "Calendar" %}</a>
+                        <a href="{% url 'ledger:spreadsheet' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">{% trans "Spreadsheet" %}</a>
+                        <a href="{% url 'ledger:budget_list' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">{% trans "Budgets" %}</a>
+                        <a href="{% url 'ledger:detail_reports' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">{% trans "Detail Reports" %}</a>
+                        <a href="{% url 'ledger:manage_settings' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">{% trans "Manage Categories" %}</a>
+                        <a href="{% url 'accounts:profile' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">{% trans "My Profile" %}</a>
+                        <a href="{% url 'accounts:notification_preference' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">{% trans "Notification Preferences" %}</a>
+                        <a href="{% url 'accounts:change_password' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">{% trans "Change Password" %}</a>
+                        <a href="{% url 'about' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">{% trans "About" %}</a>
                     </div>
                 </details>
 
                 {% if user.role == 'SUPER_ADMIN' %}
                 <details class="relative">
-                    <summary class="cursor-pointer hover:underline select-none text-amber-300">Admin Works ▾</summary>
+                    <summary class="cursor-pointer hover:underline select-none text-amber-300">{% trans "Admin Works" %} ▾</summary>
                     <div class="absolute right-0 mt-2 w-48 bg-white text-slate-800 rounded shadow-lg py-2 z-20">
-                        <a href="{% url 'accounts:user_approvals' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">Approvals</a>
-                        <a href="{% url 'accounts:preference_approvals' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">Notification Requests</a>
-                        <a href="{% url 'accounts:audit_log' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">Audit Log</a>
-                        <a href="{% url 'accounts:user_activity' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">Activity</a>
-                        <a href="{% url 'accounts:user_list' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">User</a>
-                        <a href="{% url 'accounts:notification_settings' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">Notification Settings</a>
+                        <a href="{% url 'accounts:user_approvals' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">{% trans "Approvals" %}</a>
+                        <a href="{% url 'accounts:preference_approvals' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">{% trans "Notification Requests" %}</a>
+                        <a href="{% url 'accounts:audit_log' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">{% trans "Audit Log" %}</a>
+                        <a href="{% url 'accounts:user_activity' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">{% trans "Activity" %}</a>
+                        <a href="{% url 'accounts:user_list' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">{% trans "User" %}</a>
+                        <a href="{% url 'accounts:notification_settings' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">{% trans "Notification Settings" %}</a>
                     </div>
                 </details>
                 {% endif %}
 
+                <form action="{% url 'set_language' %}" method="post" class="inline-flex items-center">
+                    {% csrf_token %}
+                    <input name="next" type="hidden" value="{{ request.path }}">
+                    {% if LANGUAGE_CODE == 'bn' %}
+                    <input type="hidden" name="language" value="en">
+                    <button type="submit" class="px-3 py-1 rounded text-xs bg-slate-700 hover:bg-slate-600 font-medium">Eng</button>
+                    {% else %}
+                    <input type="hidden" name="language" value="bn">
+                    <button type="submit" class="px-3 py-1 rounded text-xs bg-slate-700 hover:bg-slate-600 font-medium">বাংলা</button>
+                    {% endif %}
+                </form>
+
                 <span class="text-slate-300">{{ user.display_name }}</span>
                 <form method="post" action="{% url 'logout' %}" class="inline">
                     {% csrf_token %}
-                    <button type="submit" class="hover:underline">Logout</button>
+                    <button type="submit" class="hover:underline">{% trans "Logout" %}</button>
                 </form>
             </div>
         </div>
 
         <div id="mobileMenu" class="hidden md:hidden max-w-7xl mx-auto flex flex-col gap-3 mt-3 text-sm pb-3 border-t border-slate-700 pt-3">
-            <a href="{% url 'ledger:add_transaction' %}" class="bg-emerald-600 hover:bg-emerald-700 px-3 py-2 rounded font-medium text-center">+ Add Transaction</a>
-            <a href="{% url 'ledger:dashboard' %}" class="hover:underline">Dashboard</a>
-            <a href="{% url 'ledger:transaction_list' %}" class="hover:underline">All Transactions</a>
-            <a href="{% url 'ledger:reports' %}" class="hover:underline">Reports</a>
+            <a href="{% url 'ledger:add_transaction' %}" class="bg-emerald-600 hover:bg-emerald-700 px-3 py-2 rounded font-medium text-center">+ {% trans "Add Transaction" %}</a>
+            <a href="{% url 'ledger:dashboard' %}" class="hover:underline">{% trans "Dashboard" %}</a>
+            <a href="{% url 'ledger:transaction_list' %}" class="hover:underline">{% trans "All Transactions" %}</a>
+            <a href="{% url 'ledger:reports' %}" class="hover:underline">{% trans "Reports" %}</a>
 
             <details>
-                <summary class="cursor-pointer hover:underline">Others</summary>
+                <summary class="cursor-pointer hover:underline">{% trans "Others" %}</summary>
                 <div class="pl-4 flex flex-col gap-2 mt-2">
-                    <a href="{% url 'ledger:calendar' %}" class="hover:underline">Calendar</a>
-                    <a href="{% url 'ledger:spreadsheet' %}" class="hover:underline">Spreadsheet</a>
-                    <a href="{% url 'ledger:budget_list' %}" class="hover:underline">Budgets</a>
-                    <a href="{% url 'ledger:detail_reports' %}" class="hover:underline">Detail Reports</a>
-                    <a href="{% url 'ledger:manage_settings' %}" class="hover:underline">Manage Categories</a>
-                    <a href="{% url 'accounts:profile' %}" class="hover:underline">My Profile</a>
-                    <a href="{% url 'accounts:notification_preference' %}" class="hover:underline">Notification Preferences</a>
-                    <a href="{% url 'accounts:change_password' %}" class="hover:underline">Change Password</a>
-                    <a href="{% url 'about' %}" class="hover:underline">About</a>
+                    <a href="{% url 'ledger:calendar' %}" class="hover:underline">{% trans "Calendar" %}</a>
+                    <a href="{% url 'ledger:spreadsheet' %}" class="hover:underline">{% trans "Spreadsheet" %}</a>
+                    <a href="{% url 'ledger:budget_list' %}" class="hover:underline">{% trans "Budgets" %}</a>
+                    <a href="{% url 'ledger:detail_reports' %}" class="hover:underline">{% trans "Detail Reports" %}</a>
+                    <a href="{% url 'ledger:manage_settings' %}" class="hover:underline">{% trans "Manage Categories" %}</a>
+                    <a href="{% url 'accounts:profile' %}" class="hover:underline">{% trans "My Profile" %}</a>
+                    <a href="{% url 'accounts:notification_preference' %}" class="hover:underline">{% trans "Notification Preferences" %}</a>
+                    <a href="{% url 'accounts:change_password' %}" class="hover:underline">{% trans "Change Password" %}</a>
+                    <a href="{% url 'about' %}" class="hover:underline">{% trans "About" %}</a>
                 </div>
             </details>
 
             {% if user.role == 'SUPER_ADMIN' %}
             <details>
-                <summary class="cursor-pointer hover:underline text-amber-300">Admin Works</summary>
+                <summary class="cursor-pointer hover:underline text-amber-300">{% trans "Admin Works" %}</summary>
                 <div class="pl-4 flex flex-col gap-2 mt-2">
-                    <a href="{% url 'accounts:user_approvals' %}" class="hover:underline">Approvals</a>
-                    <a href="{% url 'accounts:preference_approvals' %}" class="hover:underline">Notification Requests</a>
-                    <a href="{% url 'accounts:audit_log' %}" class="hover:underline">Audit Log</a>
-                    <a href="{% url 'accounts:user_activity' %}" class="hover:underline">Activity</a>
-                    <a href="{% url 'accounts:user_list' %}" class="hover:underline">User</a>
-                    <a href="{% url 'accounts:notification_settings' %}" class="hover:underline">Notification Settings</a>
+                    <a href="{% url 'accounts:user_approvals' %}" class="hover:underline">{% trans "Approvals" %}</a>
+                    <a href="{% url 'accounts:preference_approvals' %}" class="hover:underline">{% trans "Notification Requests" %}</a>
+                    <a href="{% url 'accounts:audit_log' %}" class="hover:underline">{% trans "Audit Log" %}</a>
+                    <a href="{% url 'accounts:user_activity' %}" class="hover:underline">{% trans "Activity" %}</a>
+                    <a href="{% url 'accounts:user_list' %}" class="hover:underline">{% trans "User" %}</a>
+                    <a href="{% url 'accounts:notification_settings' %}" class="hover:underline">{% trans "Notification Settings" %}</a>
                 </div>
             </details>
             {% endif %}
 
+            <form action="{% url 'set_language' %}" method="post">
+                {% csrf_token %}
+                <input name="next" type="hidden" value="{{ request.path }}">
+                {% if LANGUAGE_CODE == 'bn' %}
+                <input type="hidden" name="language" value="en">
+                <button type="submit" class="px-3 py-1.5 rounded text-xs bg-slate-700 hover:bg-slate-600 font-medium">Eng</button>
+                {% else %}
+                <input type="hidden" name="language" value="bn">
+                <button type="submit" class="px-3 py-1.5 rounded text-xs bg-slate-700 hover:bg-slate-600 font-medium">বাংলা</button>
+                {% endif %}
+            </form>
+
             <span class="text-slate-300">{{ user.display_name }}</span>
             <form method="post" action="{% url 'logout' %}">
                 {% csrf_token %}
-                <button type="submit" class="hover:underline text-left">Logout</button>
+                <button type="submit" class="hover:underline text-left">{% trans "Logout" %}</button>
             </form>
         </div>
     </nav>
@@ -124,17 +157,17 @@
     <footer class="mt-4 mb-4 px-4">
         <div class="max-w-md mx-auto bg-white border rounded-lg text-center text-[11px] sm:text-xs text-gray-500 space-y-1 py-2.5 px-3">
             <p class="flex flex-wrap items-center justify-center gap-1.5">
-                <span>Developed by <span class="font-semibold text-gray-700">Jikrul Sayeed</span></span>
+                <span>{% trans "Developed by" %} <span class="font-semibold text-gray-700">{% trans "Jikrul Sayeed" %}</span></span>
                 <span class="text-gray-300">|</span>
-                <a href="mailto:jikrul.sayeed@gmail.com" class="text-gray-500 hover:text-emerald-600 hover:underline">Mail</a>
-                <a href="https://www.linkedin.com/in/jikrulsayeed/" target="_blank" class="text-blue-600 hover:text-blue-800 hover:underline">LinkedIn</a>
+                <a href="mailto:jikrul.sayeed@gmail.com" class="text-gray-500 hover:text-emerald-600 hover:underline">{% trans "Mail" %}</a>
+                <a href="https://www.linkedin.com/in/jikrulsayeed/" target="_blank" class="text-blue-600 hover:text-blue-800 hover:underline">{% trans "LinkedIn" %}</a>
             </p>
             <p class="text-gray-400">
-                © {% now "Y" %} Jikrul Sayeed. All rights reserved.
+                © {% now "Y" %} Jikrul Sayeed. {% trans "All rights reserved." %}
                 <span class="mx-1 text-gray-300">|</span>
-                <a href="{% url 'about' %}" class="text-emerald-600 hover:underline">About</a>
+                <a href="{% url 'about' %}" class="text-emerald-600 hover:underline">{% trans "About" %}</a>
                 <span class="mx-1 text-gray-300">|</span>
-                <span class="text-blue-500 font-medium">View {{ page_views }}</span>
+                <span class="text-blue-500 font-medium">{% trans "View" %} {{ page_views }}</span>
             </p>
         </div>
     </footer>

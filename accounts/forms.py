@@ -1,16 +1,17 @@
 from django import forms
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
+from django.utils.translation import gettext_lazy as _
 from .models import CustomUser, SummaryFrequency
 
 
 class RegistrationForm(forms.ModelForm):
     password1 = forms.CharField(
-        label='Password',
+        label=_('Password'),
         widget=forms.PasswordInput(attrs={'class': 'border rounded px-3 py-2 w-full'}),
     )
     password2 = forms.CharField(
-        label='Confirm Password',
+        label=_('Confirm Password'),
         widget=forms.PasswordInput(attrs={'class': 'border rounded px-3 py-2 w-full'}),
     )
 
@@ -25,7 +26,7 @@ class RegistrationForm(forms.ModelForm):
     def clean_email(self):
         email = self.cleaned_data['email'].strip().lower()
         if CustomUser.objects.filter(email=email).exists():
-            raise ValidationError('An account with this email already exists.')
+            raise ValidationError(_('An account with this email already exists.'))
         return email
 
     def clean(self):
@@ -33,7 +34,7 @@ class RegistrationForm(forms.ModelForm):
         p1 = cleaned.get('password1')
         p2 = cleaned.get('password2')
         if p1 and p2 and p1 != p2:
-            raise ValidationError('Passwords do not match.')
+            raise ValidationError(_('Passwords do not match.'))
         if p1:
             validate_password(p1)
         return cleaned
@@ -65,7 +66,7 @@ class ProfileForm(forms.ModelForm):
             'email': forms.EmailInput(attrs={'class': 'border rounded px-3 py-2 w-full'}),
             'phone_number': forms.TextInput(attrs={'class': 'border rounded px-3 py-2 w-full', 'placeholder': '+8801XXXXXXXXX'}),
             'whatsapp_number': forms.TextInput(attrs={'class': 'border rounded px-3 py-2 w-full', 'placeholder': '+8801XXXXXXXXX'}),
-            'telegram_id': forms.TextInput(attrs={'class': 'border rounded px-3 py-2 w-full', 'placeholder': 'e.g. 123456789'}),
+            'telegram_id': forms.TextInput(attrs={'class': 'border rounded px-3 py-2 w-full', 'placeholder': _('e.g. 123456789')}),
         }
 
     def clean_email(self):
@@ -74,7 +75,7 @@ class ProfileForm(forms.ModelForm):
         if self.instance and self.instance.pk:
             qs = qs.exclude(pk=self.instance.pk)
         if qs.exists():
-            raise ValidationError('An account with this email already exists.')
+            raise ValidationError(_('An account with this email already exists.'))
         return email
 
 
@@ -83,10 +84,10 @@ class NotificationPreferenceForm(forms.Form):
         choices=SummaryFrequency.choices,
         widget=forms.CheckboxSelectMultiple,
         required=False,
-        label='How often should we send you a summary? (pick any combination)',
+        label=_('How often should we send you a summary? (pick any combination)'),
     )
-    email_enabled = forms.BooleanField(required=False, label='Send via Email')
-    telegram_enabled = forms.BooleanField(required=False, label='Send via Telegram')
+    email_enabled = forms.BooleanField(required=False, label=_('Send via Email'))
+    telegram_enabled = forms.BooleanField(required=False, label=_('Send via Telegram'))
 
     def clean(self):
         cleaned = super().clean()
@@ -94,5 +95,5 @@ class NotificationPreferenceForm(forms.Form):
         email_enabled = cleaned.get('email_enabled')
         telegram_enabled = cleaned.get('telegram_enabled')
         if frequencies and not (email_enabled or telegram_enabled):
-            raise ValidationError('Pick at least one channel (Email or Telegram) if you want summaries turned on.')
+            raise ValidationError(_('Pick at least one channel (Email or Telegram) if you want summaries turned on.'))
         return cleaned

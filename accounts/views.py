@@ -1,6 +1,8 @@
 from datetime import timedelta
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
 from django.contrib import messages
+from django.utils.translation import gettext as _
 from django.contrib.auth import login as auth_login, logout as auth_logout, update_session_auth_hash, get_user_model
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.utils import timezone
@@ -71,6 +73,23 @@ def register(request):
             user.approval_status = ApprovalStatus.PENDING
             user.save()
             audit.log(actor=user, action='USER_REGISTER', target_type='User', target_id=user.id, detail=user.email, request=request)
+
+            review_url = request.build_absolute_uri(reverse('accounts:user_approvals'))
+            subject = 'New DailyLedger signup pending approval'
+            email_body = (
+                f'A new user has signed up and is waiting for approval.\n\n'
+                f'Name: {user.full_name or "-"}\n'
+                f'Email: {user.email}\n\n'
+                f'Review it here: {review_url}'
+            )
+            telegram_text = (
+                f'🆕 New DailyLedger signup pending approval\n'
+                f'Name: {user.full_name or "-"}\n'
+                f'Email: {user.email}\n'
+                f'{review_url}'
+            )
+            notifications.notify_super_admins(subject, email_body, telegram_text, actor=user)
+
             return render(request, 'registration/pending_approval.html', {'email': user.email})
     else:
         form = RegistrationForm()
@@ -111,7 +130,7 @@ def setup_wizard(request):
         tenant.setup_completed = True
         tenant.save()
         audit.log(actor=request.user, action='SETUP_COMPLETED', request=request)
-        messages.success(request, 'Setup complete! Your categories and payment methods are ready.')
+        messages.success(request, _('Setup complete! Your categories and payment methods are ready.'))
         return redirect('ledger:dashboard')
 
     context = {
@@ -131,7 +150,7 @@ def change_password(request):
             user = form.save()
             update_session_auth_hash(request, user)
             audit.log(actor=user, action='PASSWORD_CHANGE', request=request)
-            messages.success(request, 'Your password has been changed.')
+            messages.success(request, _('Your password has been changed.'))
             return redirect('ledger:dashboard')
     else:
         form = PasswordChangeForm(request.user)
@@ -145,7 +164,7 @@ def profile_view(request):
         if form.is_valid():
             form.save()
             audit.log(actor=request.user, action='PROFILE_UPDATE', request=request)
-            messages.success(request, 'Profile updated.')
+            messages.success(request, _('Profile updated.'))
             return redirect('accounts:profile')
     else:
         form = ProfileForm(instance=request.user)
@@ -160,7 +179,7 @@ def is_super_admin(user):
 def notification_preference_view(request):
     """Lets any user choose their summary frequency + channels. Every change
     is queued as a request and only takes effect once a Super Admin approves it."""
-    pref, _ = NotificationPreference.objects.get_or_create(user=request.user)
+    pref, _created = NotificationPreference.objects.get_or_create(user=request.user)
     settings_obj = NotificationSettings.get_solo()
 
     if request.method == 'POST':
@@ -177,7 +196,22 @@ def notification_preference_view(request):
                        f"(email={pref.requested_email_enabled}, telegram={pref.requested_telegram_enabled})",
                 request=request,
             )
-            messages.success(request, 'Your request was submitted and is pending Super Admin approval.')
+
+            review_url = request.build_absolute_uri(reverse('accounts:preference_approvals'))
+            subject = 'New notification preference request pending approval'
+            email_body = (
+                f'{request.user.full_name or request.user.email} requested a change to their '
+                f'notification preferences and it is waiting for approval.\n\n'
+                f'Review it here: {review_url}'
+            )
+            telegram_text = (
+                f'🆕 Notification preference change pending approval\n'
+                f'User: {request.user.email}\n'
+                f'{review_url}'
+            )
+            notifications.notify_super_admins(subject, email_body, telegram_text, actor=request.user)
+
+            messages.success(request, _('Your request was submitted and is pending Super Admin approval.'))
             return redirect('accounts:notification_preference')
     else:
         initial = {
@@ -218,7 +252,7 @@ def approve_preference(request, pref_id):
                    f"(email={pref.active_email_enabled}, telegram={pref.active_telegram_enabled})",
             request=request,
         )
-        messages.success(request, f"Approved notification preference for {pref.user.email}.")
+        messages.success(request, _('Approved notification preference for %(email)s.') % {'email': pref.user.email})
     return redirect('accounts:preference_approvals')
 
 
@@ -235,7 +269,7 @@ def reject_preference(request, pref_id):
             detail=f"Rejected request from {pref.user.email}" + (f": {reason}" if reason else ''),
             request=request,
         )
-        messages.success(request, f"Rejected request from {pref.user.email}.")
+        messages.success(request, _('Rejected request from %(email)s.') % {'email': pref.user.email})
     return redirect('accounts:preference_approvals')
 
 
@@ -262,7 +296,7 @@ def notification_settings_view(request):
             settings_obj.reply_to_email = request.POST.get('reply_to_email', '').strip()
             settings_obj.save()
             audit.log(actor=request.user, action='SETTINGS_UPDATE', detail='Email/SMTP settings updated', request=request)
-            messages.success(request, 'Email settings saved.')
+            messages.success(request, _('Email settings saved.'))
 
         elif action == 'save_telegram':
             settings_obj.telegram_bot_username = request.POST.get('telegram_bot_username', '').strip()
@@ -271,7 +305,7 @@ def notification_settings_view(request):
                 settings_obj.telegram_bot_token = new_token
             settings_obj.save()
             audit.log(actor=request.user, action='SETTINGS_UPDATE', detail='Telegram bot settings updated', request=request)
-            messages.success(request, 'Telegram bot settings saved.')
+            messages.success(request, _('Telegram bot settings saved.'))
 
         elif action == 'test_email':
             ok, detail = notifications.send_email(
@@ -279,17 +313,17 @@ def notification_settings_view(request):
                 'DailyLedger — Test Email',
                 'This is a test email from DailyLedger. If you received this, your email settings are working correctly.'
             )
-            messages.success(request, f'Test email sent to {request.user.email}.') if ok else messages.error(request, f'Test email failed: {detail}')
+            messages.success(request, _('Test email sent to %(email)s.') % {'email': request.user.email}) if ok else messages.error(request, _('Test email failed: %(detail)s') % {'detail': detail})
 
         elif action == 'test_telegram':
             if not request.user.telegram_id:
-                messages.error(request, 'Set your Telegram Chat ID in your Profile first, then try the test again.')
+                messages.error(request, _('Set your Telegram Chat ID in your Profile first, then try the test again.'))
             else:
                 ok, detail = notifications.send_telegram(
                     settings_obj, request.user.telegram_id,
                     'This is a test message from DailyLedger. If you received this, your Telegram bot settings are working correctly.'
                 )
-                messages.success(request, 'Test Telegram message sent.') if ok else messages.error(request, f'Test Telegram message failed: {detail}')
+                messages.success(request, _('Test Telegram message sent.')) if ok else messages.error(request, _('Test Telegram message failed: %(detail)s') % {'detail': detail})
 
         return redirect('accounts:notification_settings')
 
@@ -334,7 +368,7 @@ def approve_user(request, user_id):
             actor=request.user,
         )
 
-        messages.success(request, f'{target.email} has been approved.')
+        messages.success(request, _('%(email)s has been approved.') % {'email': target.email})
     return redirect('accounts:user_approvals')
 
 
@@ -347,7 +381,7 @@ def reject_user(request, user_id):
         target.is_active = False
         target.save()
         audit.log(actor=request.user, action='USER_REJECTED', target_type='User', target_id=str(target.id), detail=target.email, request=request)
-        messages.success(request, f'{target.email} has been rejected.')
+        messages.success(request, _('%(email)s has been rejected.') % {'email': target.email})
     return redirect('accounts:user_approvals')
 
 
@@ -393,12 +427,12 @@ def user_list(request):
 def toggle_user_active(request, user_id):
     target = get_object_or_404(CustomUser, id=user_id)
     if target == request.user:
-        messages.error(request, 'You cannot deactivate your own account.')
+        messages.error(request, _('You cannot deactivate your own account.'))
         return redirect('accounts:user_list')
     if request.method == 'POST':
         target.is_active = not target.is_active
         target.save()
         action = 'USER_REACTIVATED' if target.is_active else 'USER_DEACTIVATED'
         audit.log(actor=request.user, action=action, target_type='User', target_id=target.id, detail=target.email, request=request)
-        messages.success(request, f'{target.email} has been {"reactivated" if target.is_active else "deactivated"}.')
+        messages.success(request, _('%(email)s has been %(status)s.') % {'email': target.email, 'status': _('reactivated') if target.is_active else _('deactivated')})
     return redirect('accounts:user_list')

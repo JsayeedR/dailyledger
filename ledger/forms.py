@@ -1,4 +1,5 @@
 from django import forms
+from django.utils.translation import gettext_lazy as _
 from .models import Transaction, Category, PaymentMethod, Budget, TransactionType
 
 
@@ -37,7 +38,7 @@ class TransactionForm(forms.ModelForm):
             'type': forms.Select(attrs={'class': 'border rounded px-3 py-2 w-full'}),
             'amount': forms.NumberInput(attrs={'step': '0.01', 'class': 'border rounded px-3 py-2 w-full'}),
             'payment_method': forms.Select(attrs={'class': 'border rounded px-3 py-2 w-full'}),
-            'description': forms.TextInput(attrs={'class': 'border rounded px-3 py-2 w-full', 'placeholder': 'Optional note (e.g. what this was for)'}),
+            'description': forms.TextInput(attrs={'class': 'border rounded px-3 py-2 w-full', 'placeholder': _('Optional note (e.g. what this was for)')}),
         }
 
     def __init__(self, *args, tenant=None, **kwargs):

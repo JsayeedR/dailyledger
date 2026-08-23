@@ -1,21 +1,22 @@
 {% extends "base.html" %}
+{% load i18n %}
 {% block title %}Delete Transaction — DailyLedger{% endblock %}
 {% block container_width %}max-w-3xl{% endblock %}
 {% block content %}
-<h1 class="text-2xl font-semibold mb-6">Delete Transaction?</h1>
+<h1 class="text-2xl font-semibold mb-6">{% trans "Delete Transaction?" %}</h1>
 <div class="bg-white shadow rounded-lg p-6 max-w-lg mx-auto">
     <p class="mb-4">
         This will permanently delete the {{ txn.get_type_display }} of
-        <strong>{{ txn.amount }}</strong> on <strong>{{ txn.date }}</strong>. This cannot be undone.
+        <strong>{{ txn.amount }}</strong> {% trans "on" %} <strong>{{ txn.date }}</strong>{% trans ". This cannot be undone." %}
     </p>
     <form method="post">
         {% csrf_token %}
         <div class="flex gap-3">
             <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded font-medium">
-                Yes, Delete
+                {% trans "Yes, Delete" %}
             </button>
             <a href="{% url 'ledger:transaction_list' %}" class="bg-gray-100 hover:bg-gray-200 px-5 py-2 rounded font-medium">
-                Cancel
+                {% trans "Cancel" %}
             </a>
         </div>
     </form>

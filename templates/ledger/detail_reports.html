@@ -1,67 +1,69 @@
 {% extends "base.html" %}
+{% load i18n %}
 {% block title %}Detail Reports — DailyLedger{% endblock %}
 {% block content %}
 <div class="flex flex-wrap justify-between items-center mb-6 gap-3">
     <h1 class="text-2xl font-semibold">Detail Reports — {{ label }}</h1>
-    <div class="flex flex-wrap gap-2 text-sm">
-        <a href="?range=week" class="px-3 py-1.5 rounded {% if range_type == 'week' %}bg-emerald-600 text-white{% else %}bg-gray-100 hover:bg-gray-200{% endif %}">Last 7 Days</a>
-        <a href="?range=15days" class="px-3 py-1.5 rounded {% if range_type == '15days' %}bg-emerald-600 text-white{% else %}bg-gray-100 hover:bg-gray-200{% endif %}">Last 15 Days</a>
-        <a href="?range=month" class="px-3 py-1.5 rounded {% if range_type == 'month' %}bg-emerald-600 text-white{% else %}bg-gray-100 hover:bg-gray-200{% endif %}">This Month</a>
-        <a href="?range=year" class="px-3 py-1.5 rounded {% if range_type == 'year' %}bg-emerald-600 text-white{% else %}bg-gray-100 hover:bg-gray-200{% endif %}">This Year</a>
+    <div class="flex flex-wrap gap-2 text-sm no-print">
+        <a href="?range=week" class="px-3 py-1.5 rounded {% if range_type == 'week' %}bg-emerald-600 text-white{% else %}bg-gray-100 hover:bg-gray-200{% endif %}">{% trans "Last 7 Days" %}</a>
+        <a href="?range=15days" class="px-3 py-1.5 rounded {% if range_type == '15days' %}bg-emerald-600 text-white{% else %}bg-gray-100 hover:bg-gray-200{% endif %}">{% trans "Last 15 Days" %}</a>
+        <a href="?range=month" class="px-3 py-1.5 rounded {% if range_type == 'month' %}bg-emerald-600 text-white{% else %}bg-gray-100 hover:bg-gray-200{% endif %}">{% trans "This Month" %}</a>
+        <a href="?range=year" class="px-3 py-1.5 rounded {% if range_type == 'year' %}bg-emerald-600 text-white{% else %}bg-gray-100 hover:bg-gray-200{% endif %}">{% trans "This Year" %}</a>
+        <button onclick="window.print()" class="px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-900 text-white">{% trans "Print / PDF" %}</button>
     </div>
 </div>
 
-<form method="get" class="bg-white shadow rounded-lg p-4 mb-6 flex flex-wrap items-end gap-3 text-sm">
+<form method="get" class="no-print bg-white shadow rounded-lg p-4 mb-6 flex flex-wrap items-end gap-3 text-sm">
     <input type="hidden" name="range" value="custom">
     <div>
-        <label class="block text-gray-500 mb-1">From</label>
+        <label class="block text-gray-500 mb-1">{% trans "From" %}</label>
         <input type="date" name="start" value="{{ start_date|date:'Y-m-d' }}" class="border rounded px-3 py-2">
     </div>
     <div>
-        <label class="block text-gray-500 mb-1">To</label>
+        <label class="block text-gray-500 mb-1">{% trans "To" %}</label>
         <input type="date" name="end" value="{{ end_date|date:'Y-m-d' }}" class="border rounded px-3 py-2">
     </div>
-    <button type="submit" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded">Custom Range</button>
+    <button type="submit" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded">{% trans "Custom Range" %}</button>
 </form>
 
 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
     <div class="bg-white shadow rounded-lg p-4">
-        <p class="text-xs text-gray-500">Total Income</p>
+        <p class="text-xs text-gray-500">{% trans "Total Income" %}</p>
         <p class="text-lg font-semibold text-emerald-600 mt-1">{{ currency }} {{ total_income }}</p>
     </div>
     <div class="bg-white shadow rounded-lg p-4">
-        <p class="text-xs text-gray-500">Total Expense</p>
+        <p class="text-xs text-gray-500">{% trans "Total Expense" %}</p>
         <p class="text-lg font-semibold text-red-600 mt-1">{{ currency }} {{ total_expense }}</p>
     </div>
     <div class="bg-white shadow rounded-lg p-4">
-        <p class="text-xs text-gray-500">Top Category</p>
+        <p class="text-xs text-gray-500">{% trans "Top Category" %}</p>
         <p class="text-lg font-semibold mt-1">{{ top_category|default:"—" }}</p>
     </div>
     <div class="bg-white shadow rounded-lg p-4">
-        <p class="text-xs text-gray-500">Top Payment Method</p>
+        <p class="text-xs text-gray-500">{% trans "Top Payment Method" %}</p>
         <p class="text-lg font-semibold mt-1">{{ top_payment|default:"—" }}</p>
     </div>
 </div>
 
-<div class="flex gap-2 mb-4 overflow-x-auto">
-    <button onclick="showDetailTab('expense')" id="tab-btn-expense" class="tab-btn px-4 py-2 text-sm font-medium rounded-full bg-emerald-600 text-white whitespace-nowrap">Expense Categories</button>
-    <button onclick="showDetailTab('income')" id="tab-btn-income" class="tab-btn px-4 py-2 text-sm font-medium rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 whitespace-nowrap">Income Sources</button>
-    <button onclick="showDetailTab('payment')" id="tab-btn-payment" class="tab-btn px-4 py-2 text-sm font-medium rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 whitespace-nowrap">Payment Methods</button>
+<div class="no-print flex gap-2 mb-4 overflow-x-auto">
+    <button onclick="showDetailTab('expense')" id="tab-btn-expense" class="tab-btn px-4 py-2 text-sm font-medium rounded-full bg-emerald-600 text-white whitespace-nowrap">{% trans "Expense Categories" %}</button>
+    <button onclick="showDetailTab('income')" id="tab-btn-income" class="tab-btn px-4 py-2 text-sm font-medium rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 whitespace-nowrap">{% trans "Income Sources" %}</button>
+    <button onclick="showDetailTab('payment')" id="tab-btn-payment" class="tab-btn px-4 py-2 text-sm font-medium rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 whitespace-nowrap">{% trans "Payment Methods" %}</button>
 </div>
 
 <div id="tab-expense" class="tab-panel">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div class="bg-white shadow rounded-lg p-5">
             <div class="flex justify-between items-center mb-3">
-                <h2 class="font-semibold">Expense Category Distribution</h2>
-                {% if expense_labels %}<button onclick="downloadChart('expenseChart','expense-categories.jpg')" class="text-xs text-slate-500 hover:text-slate-800 underline">Download JPG</button>{% endif %}
+                <h2 class="font-semibold">{% trans "Expense Category Distribution" %}</h2>
+                {% if expense_labels %}<button onclick="downloadChart('expenseChart','expense-categories.jpg')" class="no-print text-xs text-slate-500 hover:text-slate-800 underline">{% trans "Download JPG" %}</button>{% endif %}
             </div>
-            {% if expense_labels %}<canvas id="expenseChart" height="220"></canvas>{% else %}<p class="text-gray-400 text-sm">No expense data in this range.</p>{% endif %}
+            {% if expense_labels %}<canvas id="expenseChart" height="220"></canvas>{% else %}<p class="text-gray-400 text-sm">{% trans "No expense data in this range." %}</p>{% endif %}
         </div>
         <div class="bg-white shadow rounded-lg p-5 overflow-x-auto">
-            <h2 class="font-semibold mb-3">Breakdown</h2>
+            <h2 class="font-semibold mb-3">{% trans "Breakdown" %}</h2>
             <table class="w-full text-sm">
-                <thead class="text-left text-gray-500 border-b"><tr><th class="py-2">Category</th><th class="text-right">Txns</th><th class="text-right">Total</th><th class="text-right">%</th></tr></thead>
+                <thead class="text-left text-gray-500 border-b"><tr><th class="py-2">{% trans "Category" %}</th><th class="text-right">{% trans "Txns" %}</th><th class="text-right">{% trans "Total" %}</th><th class="text-right">%</th></tr></thead>
                 <tbody>
                     {% for row in expense_categories %}
                     <tr class="border-b last:border-0">
@@ -71,7 +73,7 @@
                         <td class="text-right">{{ row.pct }}%</td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="4" class="py-4 text-center text-gray-400">No expense data in this range.</td></tr>
+                    <tr><td colspan="4" class="py-4 text-center text-gray-400">{% trans "No expense data in this range." %}</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -83,15 +85,15 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div class="bg-white shadow rounded-lg p-5">
             <div class="flex justify-between items-center mb-3">
-                <h2 class="font-semibold">Income Source Distribution</h2>
-                {% if income_labels %}<button onclick="downloadChart('incomeChart','income-sources.jpg')" class="text-xs text-slate-500 hover:text-slate-800 underline">Download JPG</button>{% endif %}
+                <h2 class="font-semibold">{% trans "Income Source Distribution" %}</h2>
+                {% if income_labels %}<button onclick="downloadChart('incomeChart','income-sources.jpg')" class="no-print text-xs text-slate-500 hover:text-slate-800 underline">{% trans "Download JPG" %}</button>{% endif %}
             </div>
-            {% if income_labels %}<canvas id="incomeChart" height="220"></canvas>{% else %}<p class="text-gray-400 text-sm">No income data in this range.</p>{% endif %}
+            {% if income_labels %}<canvas id="incomeChart" height="220"></canvas>{% else %}<p class="text-gray-400 text-sm">{% trans "No income data in this range." %}</p>{% endif %}
         </div>
         <div class="bg-white shadow rounded-lg p-5 overflow-x-auto">
-            <h2 class="font-semibold mb-3">Breakdown</h2>
+            <h2 class="font-semibold mb-3">{% trans "Breakdown" %}</h2>
             <table class="w-full text-sm">
-                <thead class="text-left text-gray-500 border-b"><tr><th class="py-2">Source</th><th class="text-right">Txns</th><th class="text-right">Total</th><th class="text-right">%</th></tr></thead>
+                <thead class="text-left text-gray-500 border-b"><tr><th class="py-2">{% trans "Source" %}</th><th class="text-right">{% trans "Txns" %}</th><th class="text-right">{% trans "Total" %}</th><th class="text-right">%</th></tr></thead>
                 <tbody>
                     {% for row in income_sources %}
                     <tr class="border-b last:border-0">
@@ -101,7 +103,7 @@
                         <td class="text-right">{{ row.pct }}%</td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="4" class="py-4 text-center text-gray-400">No income data in this range.</td></tr>
+                    <tr><td colspan="4" class="py-4 text-center text-gray-400">{% trans "No income data in this range." %}</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -113,15 +115,15 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div class="bg-white shadow rounded-lg p-5">
             <div class="flex justify-between items-center mb-3">
-                <h2 class="font-semibold">Income vs Expense by Method</h2>
-                {% if payment_labels %}<button onclick="downloadChart('paymentChart','payment-methods.jpg')" class="text-xs text-slate-500 hover:text-slate-800 underline">Download JPG</button>{% endif %}
+                <h2 class="font-semibold">{% trans "Income vs Expense by Method" %}</h2>
+                {% if payment_labels %}<button onclick="downloadChart('paymentChart','payment-methods.jpg')" class="no-print text-xs text-slate-500 hover:text-slate-800 underline">{% trans "Download JPG" %}</button>{% endif %}
             </div>
-            {% if payment_labels %}<canvas id="paymentChart" height="220"></canvas>{% else %}<p class="text-gray-400 text-sm">No payment method data in this range.</p>{% endif %}
+            {% if payment_labels %}<canvas id="paymentChart" height="220"></canvas>{% else %}<p class="text-gray-400 text-sm">{% trans "No payment method data in this range." %}</p>{% endif %}
         </div>
         <div class="bg-white shadow rounded-lg p-5 overflow-x-auto">
-            <h2 class="font-semibold mb-3">Breakdown</h2>
+            <h2 class="font-semibold mb-3">{% trans "Breakdown" %}</h2>
             <table class="w-full text-sm">
-                <thead class="text-left text-gray-500 border-b"><tr><th class="py-2">Method</th><th class="text-right">Income</th><th class="text-right">Expense</th><th class="text-right">Txns</th></tr></thead>
+                <thead class="text-left text-gray-500 border-b"><tr><th class="py-2">{% trans "Method" %}</th><th class="text-right">{% trans "Income" %}</th><th class="text-right">{% trans "Expense" %}</th><th class="text-right">{% trans "Txns" %}</th></tr></thead>
                 <tbody>
                     {% for row in payment_breakdown %}
                     <tr class="border-b last:border-0">
@@ -131,7 +133,7 @@
                         <td class="text-right">{{ row.count }}</td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="4" class="py-4 text-center text-gray-400">No payment method data in this range.</td></tr>
+                    <tr><td colspan="4" class="py-4 text-center text-gray-400">{% trans "No payment method data in this range." %}</td></tr>
                     {% endfor %}
                 </tbody>
             </table>

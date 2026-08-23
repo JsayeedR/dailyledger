@@ -1,22 +1,23 @@
 {% extends "base.html" %}
+{% load i18n %}
 {% block container_width %}max-w-2xl{% endblock %}
 {% block title %}Notification Preferences — DailyLedger{% endblock %}
 {% block content %}
-<h1 class="text-2xl font-semibold mb-6">Summary Notifications</h1>
+<h1 class="text-2xl font-semibold mb-6">{% trans "Summary Notifications" %}</h1>
 
 {% if pref.has_pending_request %}
 <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6 text-sm text-amber-900">
-    <p class="font-semibold">⏳ Pending approval</p>
+    <p class="font-semibold">{% trans "⏳ Pending approval" %}</p>
     <p class="mt-1">
         You requested
         {% with labels=pref.requested_frequency_labels %}
-            {% if labels %}<strong>{{ labels|join:", " }}</strong>{% else %}<strong>Off</strong>{% endif %}
+            {% if labels %}<strong>{{ labels|join:", " }}</strong>{% else %}<strong>{% trans "Off" %}</strong>{% endif %}
         {% endwith %}
         {% if pref.requested_email_enabled and pref.requested_telegram_enabled %}via Email and Telegram{% elif pref.requested_email_enabled %}via Email{% elif pref.requested_telegram_enabled %}via Telegram{% endif %}
         on {{ pref.requested_at|date:"M d, Y H:i" }}. A Super Admin needs to approve this before it takes effect.
     </p>
     {% if pref.active_frequencies %}
-    <p class="mt-1 text-amber-700">Until then, your current active setting (<strong>{{ pref.active_frequency_labels|join:", " }}</strong>) keeps running.</p>
+    <p class="mt-1 text-amber-700">{% trans "Until then, your current active setting (" %}<strong>{{ pref.active_frequency_labels|join:", " }}</strong>{% trans ") keeps running." %}</p>
     {% endif %}
 </div>
 {% elif pref.review_status == 'REJECTED' %}
@@ -27,7 +28,7 @@
 {% endif %}
 
 <div class="bg-white shadow rounded-lg p-6 mb-6">
-    <p class="text-sm text-gray-500 mb-1">Currently active:</p>
+    <p class="text-sm text-gray-500 mb-1">{% trans "Currently active:" %}</p>
     <p class="font-medium">
         {% with labels=pref.active_frequency_labels %}
             {% if labels %}{{ labels|join:", " }}{% else %}Off{% endif %}
@@ -40,12 +41,12 @@
 </div>
 
 <div class="bg-white shadow rounded-lg p-6">
-    <h2 class="font-semibold text-lg mb-4">Change my preference</h2>
+    <h2 class="font-semibold text-lg mb-4">{% trans "Change my preference" %}</h2>
     <form method="post" class="space-y-4">
         {% csrf_token %}
         <div>
-            <label class="block text-sm font-medium mb-2">How often should we send you a summary?</label>
-            <p class="text-xs text-gray-400 mb-2">Pick any combination — you can select more than one, or even all of them.</p>
+            <label class="block text-sm font-medium mb-2">{% trans "How often should we send you a summary?" %}</label>
+            <p class="text-xs text-gray-400 mb-2">{% trans "Pick any combination — you can select more than one, or even all of them." %}</p>
             <div class="space-y-2">
                 {% for checkbox in form.frequencies %}
                 <label class="flex items-center gap-2 text-sm bg-gray-50 border rounded px-3 py-2">
@@ -53,25 +54,25 @@
                 </label>
                 {% endfor %}
             </div>
-            <p class="text-xs text-gray-400 mt-2">Daily sends at 12:01 AM (Asia/Dhaka). Weekly sends Friday 12:01 AM. Monthly sends the 1st of the month. Yearly sends Jan 1st.</p>
+            <p class="text-xs text-gray-400 mt-2">{% trans "Daily sends at 12:01 AM (Asia/Dhaka). Weekly sends Friday 12:01 AM. Monthly sends the 1st of the month. Yearly sends Jan 1st." %}</p>
             {% if form.frequencies.errors %}<p class="text-red-600 text-sm mt-1">{{ form.frequencies.errors|striptags }}</p>{% endif %}
         </div>
 
         <div class="space-y-2 pt-2 border-t">
             <label class="flex items-center gap-2 text-sm">
                 {{ form.email_enabled }} Send via Email
-                {% if not settings.is_email_configured %}<span class="text-xs text-amber-600">(admin hasn't set up email yet)</span>{% endif %}
+                {% if not settings.is_email_configured %}<span class="text-xs text-amber-600">{% trans "(admin hasn't set up email yet)" %}</span>{% endif %}
             </label>
             <label class="flex items-center gap-2 text-sm">
                 {{ form.telegram_enabled }} Send via Telegram
-                {% if not settings.is_telegram_configured %}<span class="text-xs text-amber-600">(admin hasn't set up the bot yet)</span>{% endif %}
-                {% if not request.user.telegram_id %}<span class="text-xs text-amber-600">(set your Telegram Chat ID in <a href="{% url 'accounts:profile' %}" class="underline">Profile</a> first)</span>{% endif %}
+                {% if not settings.is_telegram_configured %}<span class="text-xs text-amber-600">{% trans "(admin hasn't set up the bot yet)" %}</span>{% endif %}
+                {% if not request.user.telegram_id %}<span class="text-xs text-amber-600">{% trans "(set your Telegram Chat ID in" %} <a href="{% url 'accounts:profile' %}" class="underline">{% trans "Profile" %}</a> {% trans "first)" %}</span>{% endif %}
             </label>
             {% if form.non_field_errors %}<p class="text-red-600 text-sm">{{ form.non_field_errors|striptags }}</p>{% endif %}
         </div>
 
         <button type="submit" class="bg-slate-800 hover:bg-slate-900 text-white px-5 py-2 rounded text-sm font-medium">
-            Submit for Approval
+            {% trans "Submit for Approval" %}
         </button>
     </form>
 </div>

@@ -5,6 +5,24 @@ from django.core.mail import EmailMessage, get_connection
 from . import audit
 
 
+def notify_super_admins(subject, email_body, telegram_text=None, actor=None):
+    """Alerts every active Super Admin by email and Telegram about something
+    that needs their attention (a new pending signup, a pending preference
+    change request, etc). Called once per event by the caller — this function
+    itself doesn't dedupe, so callers should only invoke it right when the
+    item first becomes pending, not on every page view."""
+    from .models import CustomUser, Role, ApprovalStatus, NotificationSettings
+
+    settings_obj = NotificationSettings.get_solo()
+    admins = CustomUser.objects.filter(role=Role.SUPER_ADMIN, approval_status=ApprovalStatus.APPROVED, is_active=True)
+
+    for admin in admins:
+        if admin.email:
+            send_email(settings_obj, admin.email, subject, email_body, actor=actor)
+        if admin.telegram_id:
+            send_telegram(settings_obj, admin.telegram_id, telegram_text or email_body, actor=actor)
+
+
 def send_email(settings_obj, to_email, subject, body, actor=None):
     if not settings_obj.is_email_configured():
         audit.log(

@@ -1,11 +1,12 @@
 import uuid
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 from accounts.models import Tenant
 
 
 class TransactionType(models.TextChoices):
-    EXPENSE = 'EXPENSE', 'Expense'
-    INCOME = 'INCOME', 'Income'
+    EXPENSE = 'EXPENSE', _('Expense')
+    INCOME = 'INCOME', _('Income')
 
 
 class Category(models.Model):

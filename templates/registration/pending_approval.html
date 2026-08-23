@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load i18n %}
 {% block title %}Pending Approval — DailyLedger{% endblock %}
 {% block container_width %}max-w-3xl{% endblock %}
 {% block content %}
@@ -8,11 +9,11 @@
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
         </svg>
     </div>
-    <h1 class="text-xl font-bold mb-2">Account Created</h1>
+    <h1 class="text-xl font-bold mb-2">{% trans "Account Created" %}</h1>
     <p class="text-gray-600 text-sm mb-4">
-        Your account (<strong>{{ email }}</strong>) is pending Super Admin approval.
-        You'll be able to log in once an administrator approves it.
+        {% trans "Your account (" %}<strong>{{ email }}</strong>{% trans ") is pending Super Admin approval.
+        You'll be able to log in once an administrator approves it." %}
     </p>
-    <a href="{% url 'login' %}" class="text-emerald-600 hover:underline text-sm">Back to Login</a>
+    <a href="{% url 'login' %}" class="text-emerald-600 hover:underline text-sm">{% trans "Back to Login" %}</a>
 </div>
 {% endblock %}

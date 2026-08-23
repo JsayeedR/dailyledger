@@ -2,18 +2,19 @@ import uuid
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 
 class Role(models.TextChoices):
-    USER = 'USER', 'User'
-    ADMIN = 'ADMIN', 'Admin'
-    SUPER_ADMIN = 'SUPER_ADMIN', 'Super Admin'
+    USER = 'USER', _('User')
+    ADMIN = 'ADMIN', _('Admin')
+    SUPER_ADMIN = 'SUPER_ADMIN', _('Super Admin')
 
 
 class ApprovalStatus(models.TextChoices):
-    PENDING = 'PENDING', 'Pending'
-    APPROVED = 'APPROVED', 'Approved'
-    REJECTED = 'REJECTED', 'Rejected'
+    PENDING = 'PENDING', _('Pending')
+    APPROVED = 'APPROVED', _('Approved')
+    REJECTED = 'REJECTED', _('Rejected')
 
 
 class CustomUserManager(BaseUserManager):
@@ -208,17 +209,17 @@ class NotificationSettings(models.Model):
 
 
 class SummaryFrequency(models.TextChoices):
-    DAILY = 'DAILY', 'Daily'
-    WEEKLY = 'WEEKLY', 'Weekly (Friday)'
-    MONTHLY = 'MONTHLY', 'Monthly (1st)'
-    YEARLY = 'YEARLY', 'Yearly (Jan 1)'
+    DAILY = 'DAILY', _('Daily')
+    WEEKLY = 'WEEKLY', _('Weekly (Friday)')
+    MONTHLY = 'MONTHLY', _('Monthly (1st)')
+    YEARLY = 'YEARLY', _('Yearly (Jan 1)')
 
 
 class PreferenceReviewStatus(models.TextChoices):
-    NONE = 'NONE', 'No request yet'
-    PENDING = 'PENDING', 'Pending'
-    APPROVED = 'APPROVED', 'Approved'
-    REJECTED = 'REJECTED', 'Rejected'
+    NONE = 'NONE', _('No request yet')
+    PENDING = 'PENDING', _('Pending')
+    APPROVED = 'APPROVED', _('Approved')
+    REJECTED = 'REJECTED', _('Rejected')
 
 
 class NotificationPreference(models.Model):

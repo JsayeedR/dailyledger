@@ -1,0 +1,1123 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-08-23 07:55+0600\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Password"
+msgstr "পাসওয়ার্ড"
+
+msgid "Confirm Password"
+msgstr "পাসওয়ার্ড নিশ্চিত করুন"
+
+msgid "An account with this email already exists."
+msgstr "এই ইমেইল দিয়ে ইতিমধ্যে একটি অ্যাকাউন্ট আছে।"
+
+msgid "Passwords do not match."
+msgstr "পাসওয়ার্ড মিলছে না।"
+
+msgid "e.g. 123456789"
+msgstr "e.g. 123456789"
+
+msgid "How often should we send you a summary? (pick any combination)"
+msgstr "কতবার আপনাকে সারাংশ পাঠানো উচিত? (যেকোনো সমন্বয় বেছে নিন)"
+
+msgid "Send via Email"
+msgstr "ইমেইলের মাধ্যমে পাঠান"
+
+msgid "Send via Telegram"
+msgstr "টেলিগ্রামের মাধ্যমে পাঠান"
+
+msgid ""
+"Pick at least one channel (Email or Telegram) if you want summaries turned "
+"on."
+msgstr "সারাংশ চালু করতে চাইলে অন্তত একটি চ্যানেল (ইমেইল বা টেলিগ্রাম) বেছে নিন।"
+
+msgid "User"
+msgstr "ব্যবহারকারী"
+
+msgid "Admin"
+msgstr "অ্যাডমিন"
+
+msgid "Super Admin"
+msgstr "সুপার অ্যাডমিন"
+
+msgid "Pending"
+msgstr "অপেক্ষমাণ"
+
+msgid "Approved"
+msgstr "অনুমোদিত"
+
+msgid "Rejected"
+msgstr "প্রত্যাখ্যাত"
+
+msgid "Daily"
+msgstr "দৈনিক"
+
+msgid "Weekly (Friday)"
+msgstr "সাপ্তাহিক (শুক্রবার)"
+
+msgid "Monthly (1st)"
+msgstr "মাসিক (১ তারিখ)"
+
+msgid "Yearly (Jan 1)"
+msgstr "বার্ষিক (১ জানুয়ারি)"
+
+msgid "No request yet"
+msgstr "এখনো কোনো অনুরোধ নেই"
+
+msgid "Setup complete! Your categories and payment methods are ready."
+msgstr "সেটআপ সম্পন্ন! আপনার ক্যাটাগরি এবং পেমেন্ট মেথড প্রস্তুত।"
+
+msgid "Your password has been changed."
+msgstr "আপনার পাসওয়ার্ড পরিবর্তন করা হয়েছে।"
+
+msgid "Profile updated."
+msgstr "প্রোফাইল আপডেট হয়েছে।"
+
+msgid "Your request was submitted and is pending Super Admin approval."
+msgstr "আপনার অনুরোধ জমা দেওয়া হয়েছে এবং সুপার অ্যাডমিনের অনুমোদনের অপেক্ষায় আছে।"
+
+#, python-format
+msgid "Approved notification preference for %(email)s."
+msgstr "%(email)s-এর জন্য নোটিফিকেশন পছন্দ অনুমোদিত হয়েছে।"
+
+#, python-format
+msgid "Rejected request from %(email)s."
+msgstr "%(email)s থেকে অনুরোধ প্রত্যাখ্যাত হয়েছে।"
+
+msgid "Email settings saved."
+msgstr "ইমেইল সেটিংস সংরক্ষিত হয়েছে।"
+
+msgid "Telegram bot settings saved."
+msgstr "টেলিগ্রাম বট সেটিংস সংরক্ষিত হয়েছে।"
+
+#, python-format
+msgid "Test email sent to %(email)s."
+msgstr "%(email)s-এ টেস্ট ইমেইল পাঠানো হয়েছে।"
+
+#, python-format
+msgid "Test email failed: %(detail)s"
+msgstr "টেস্ট ইমেইল ব্যর্থ হয়েছে: %(detail)s"
+
+msgid ""
+"Set your Telegram Chat ID in your Profile first, then try the test again."
+msgstr "প্রথমে আপনার প্রোফাইলে টেলিগ্রাম চ্যাট আইডি সেট করুন, তারপর আবার টেস্ট করুন।"
+
+msgid "Test Telegram message sent."
+msgstr "টেস্ট টেলিগ্রাম মেসেজ পাঠানো হয়েছে।"
+
+#, python-format
+msgid "Test Telegram message failed: %(detail)s"
+msgstr "টেস্ট টেলিগ্রাম মেসেজ ব্যর্থ হয়েছে: %(detail)s"
+
+#, python-format
+msgid "%(email)s has been approved."
+msgstr "%(email)s অনুমোদিত হয়েছে।"
+
+#, python-format
+msgid "%(email)s has been rejected."
+msgstr "%(email)s প্রত্যাখ্যাত হয়েছে।"
+
+msgid "You cannot deactivate your own account."
+msgstr "আপনি নিজের অ্যাকাউন্ট নিষ্ক্রিয় করতে পারবেন না।"
+
+#, python-format
+msgid "%(email)s has been %(status)s."
+msgstr "%(email)s-কে %(status)s হয়েছে।"
+
+msgid "reactivated"
+msgstr "পুনরায় সক্রিয় করা হয়েছে"
+
+msgid "deactivated"
+msgstr "নিষ্ক্রিয় করা হয়েছে"
+
+msgid "Optional note (e.g. what this was for)"
+msgstr "ঐচ্ছিক নোট (যেমন, এটি কী কারণে)"
+
+msgid "Expense"
+msgstr "খরচ"
+
+msgid "Income"
+msgstr "আয়"
+
+msgid "Transaction added successfully."
+msgstr "লেনদেন সফলভাবে যোগ করা হয়েছে।"
+
+msgid "Transaction updated successfully."
+msgstr "লেনদেন সফলভাবে আপডেট করা হয়েছে।"
+
+msgid "Transaction deleted."
+msgstr "লেনদেন মুছে ফেলা হয়েছে।"
+
+msgid "Budget saved."
+msgstr "বাজেট সংরক্ষিত হয়েছে।"
+
+msgid "Budget removed."
+msgstr "বাজেট মুছে ফেলা হয়েছে।"
+
+#, python-format
+msgid "Category \"%(name)s\" added."
+msgstr "ক্যাটাগরি \"%(name)s\" যোগ করা হয়েছে।"
+
+msgid "Please provide a valid name."
+msgstr "একটি বৈধ নাম প্রদান করুন।"
+
+#, python-format
+msgid "Payment method \"%(name)s\" added."
+msgstr "পেমেন্ট মেথড \"%(name)s\" যোগ করা হয়েছে।"
+
+msgid "Please provide a name."
+msgstr "একটি নাম প্রদান করুন।"
+
+msgid "Audit Log"
+msgstr "অডিট লগ"
+
+msgid "Time"
+msgstr "সময়"
+
+msgid "Action"
+msgstr "কার্যক্রম"
+
+msgid "Target"
+msgstr "লক্ষ্যমাত্রা"
+
+msgid "Detail"
+msgstr "বিস্তারিত"
+
+msgid "IP"
+msgstr "আইপি"
+
+msgid "No activity logged yet."
+msgstr "এখনো কোনো কার্যকলাপ লগ হয়নি।"
+
+msgid "Change Password"
+msgstr "পাসওয়ার্ড পরিবর্তন করুন"
+
+msgid "Update Password"
+msgstr "পাসওয়ার্ড আপডেট করুন"
+
+msgid "Summary Notifications"
+msgstr "সারাংশ নোটিফিকেশন"
+
+msgid "⏳ Pending approval"
+msgstr "⏳ অনুমোদনের অপেক্ষায়"
+
+msgid "Off"
+msgstr "বন্ধ"
+
+msgid "Until then, your current active setting ("
+msgstr "ততক্ষণ পর্যন্ত, আপনার বর্তমান সক্রিয় সেটিং ("
+
+msgid ") keeps running."
+msgstr ") চালু থাকবে।"
+
+msgid "Currently active:"
+msgstr "বর্তমানে সক্রিয়:"
+
+msgid "Change my preference"
+msgstr "আমার পছন্দ পরিবর্তন করুন"
+
+msgid "How often should we send you a summary?"
+msgstr "কতবার আপনাকে সারাংশ পাঠানো উচিত?"
+
+msgid ""
+"Pick any combination — you can select more than one, or even all of them."
+msgstr "যেকোনো সমন্বয় বেছে নিন — একাধিক বা সবগুলোও বেছে নিতে পারেন।"
+
+msgid ""
+"Daily sends at 12:01 AM (Asia/Dhaka). Weekly sends Friday 12:01 AM. Monthly "
+"sends the 1st of the month. Yearly sends Jan 1st."
+msgstr "দৈনিক রাত ১২:০১ টায় (এশিয়া/ঢাকা) পাঠানো হয়। সাপ্তাহিক শুক্রবার রাত ১২:০১ টায়। মাসিক প্রতি মাসের ১ তারিখে। বার্ষিক ১ জানুয়ারিতে পাঠানো হয়।"
+
+msgid "(admin hasn't set up email yet)"
+msgstr "(অ্যাডমিন এখনো ইমেইল সেটআপ করেননি)"
+
+msgid "(admin hasn't set up the bot yet)"
+msgstr "(অ্যাডমিন এখনো বট সেটআপ করেননি)"
+
+msgid "(set your Telegram Chat ID in"
+msgstr "(আপনার টেলিগ্রাম চ্যাট আইডি সেট করুন"
+
+msgid "Profile"
+msgstr "প্রোফাইল"
+
+msgid "first)"
+msgstr "প্রথমে)"
+
+msgid "Submit for Approval"
+msgstr "অনুমোদনের জন্য জমা দিন"
+
+msgid "Notification Settings"
+msgstr "নোটিফিকেশন সেটিংস"
+
+msgid "📧 Email (SMTP)"
+msgstr "📧 ইমেইল (SMTP)"
+
+msgid "Configured"
+msgstr "কনফিগার করা হয়েছে"
+
+msgid "Not set up yet"
+msgstr "এখনো সেট আপ করা হয়নি"
+
+msgid "How to get a Gmail App Password"
+msgstr "কীভাবে জিমেইল অ্যাপ পাসওয়ার্ড পাবেন"
+
+msgid "Go to"
+msgstr "Go to"
+
+msgid "myaccount.google.com/security"
+msgstr "myaccount.google.com/security"
+
+msgid "and turn on 2-Step Verification (if not already on)"
+msgstr "এবং 2-স্টেপ ভেরিফিকেশন চালু করুন (যদি ইতিমধ্যে চালু না থাকে)"
+
+msgid "myaccount.google.com/apppasswords"
+msgstr "myaccount.google.com/apppasswords"
+
+msgid "Choose app \\"
+msgstr "অ্যাপ বেছে নিন \\"
+
+msgid ""
+"Copy the 16-character password shown (spaces don't matter) and paste it below"
+msgstr "প্রদর্শিত ১৬-অক্ষরের পাসওয়ার্ড কপি করুন (স্পেস কোনো ব্যাপার না) এবং নিচে পেস্ট করুন"
+
+msgid "SMTP Host"
+msgstr "SMTP হোস্ট"
+
+msgid "smtp.gmail.com"
+msgstr "smtp.gmail.com"
+
+msgid "SMTP Port"
+msgstr "SMTP পোর্ট"
+
+msgid "Email Address"
+msgstr "ইমেইল ঠিকানা"
+
+msgid "jikrul.sayeed@gmail.com"
+msgstr "jikrul.sayeed@gmail.com"
+
+msgid "App Password"
+msgstr "অ্যাপ পাসওয়ার্ড"
+
+msgid "Use TLS (recommended, keep checked for Gmail)"
+msgstr "TLS ব্যবহার করুন (প্রস্তাবিত, জিমেইলের জন্য চেক করা রাখুন)"
+
+msgid "From Display Name"
+msgstr "প্রেরকের নাম (ডিসপ্লে নেম)"
+
+msgid "DailyLedger"
+msgstr "DailyLedger"
+
+msgid "Reply-To Email (optional)"
+msgstr "রিপ্লাই-টু ইমেইল (ঐচ্ছিক)"
+
+msgid "Defaults to the SMTP email above"
+msgstr "উপরের SMTP ইমেইলের ডিফল্ট মান"
+
+msgid "Save Email Settings"
+msgstr "ইমেইল সেটিংস সংরক্ষণ করুন"
+
+msgid "✈️ Telegram Bot"
+msgstr "✈️ টেলিগ্রাম বট"
+
+msgid "How to create a Telegram Bot"
+msgstr "কীভাবে একটি টেলিগ্রাম বট তৈরি করবেন"
+
+msgid "Open Telegram and search for"
+msgstr "টেলিগ্রাম খুলুন এবং খুঁজুন"
+
+msgid "@BotFather"
+msgstr "@BotFather"
+
+msgid "Send"
+msgstr "পাঠান"
+
+msgid "/newbot"
+msgstr "/newbot"
+
+msgid "and follow the prompts (choose a name and a username ending in \\"
+msgstr "এবং নির্দেশাবলী অনুসরণ করুন (একটি নাম এবং \\ দিয়ে শেষ হওয়া ইউজারনেম বেছে নিন"
+
+msgid "BotFather replies with a token like"
+msgstr "বটফাদার একটি টোকেন দিয়ে উত্তর দেয়, যেমন"
+
+msgid "123456789:ABCdefGhIJKlmNoPQRstuVwxyZ"
+msgstr "123456789:ABCdefGhIJKlmNoPQRstuVwxyZ"
+
+msgid "Copy that token and paste it below"
+msgstr "সেই টোকেনটি কপি করে নিচে পেস্ট করুন"
+
+msgid "Each user must message your bot at least once (e.g. send"
+msgstr "প্রতিটি ব্যবহারকারীকে অন্তত একবার আপনার বটে মেসেজ পাঠাতে হবে (যেমন পাঠান"
+
+msgid "/start"
+msgstr "/start"
+
+msgid ""
+") — Telegram only lets a bot message people who've messaged it first. They "
+"should also set their Chat ID in their Profile page."
+msgstr ") — টেলিগ্রাম শুধুমাত্র সেই ব্যবহারকারীদের বট মেসেজ পাঠাতে দেয় যারা আগে বটে মেসেজ পাঠিয়েছেন। তাদের প্রোফাইল পৃষ্ঠায় চ্যাট আইডিও সেট করতে হবে।"
+
+msgid "Bot Username (shown to users for reference)"
+msgstr "বট ইউজারনেম (রেফারেন্সের জন্য ব্যবহারকারীদের দেখানো হয়)"
+
+msgid "@DailyLedgerBot"
+msgstr "@DailyLedgerBot"
+
+msgid "Bot Token"
+msgstr "বট টোকেন"
+
+msgid "Save Telegram Settings"
+msgstr "টেলিগ্রাম সেটিংস সংরক্ষণ করুন"
+
+msgid "Send test message to my Telegram"
+msgstr "আমার টেলিগ্রামে টেস্ট মেসেজ পাঠান"
+
+msgid "You haven't set your Telegram Chat ID yet — add it in"
+msgstr "আপনি এখনো আপনার টেলিগ্রাম চ্যাট আইডি সেট করেননি — এটি যোগ করুন"
+
+msgid "My Profile"
+msgstr "আমার প্রোফাইল"
+
+msgid "first."
+msgstr "প্রথমে।"
+
+msgid "Pending User Approvals"
+msgstr "অপেক্ষমাণ ব্যবহারকারী অনুমোদন"
+
+msgid "Email"
+msgstr "ইমেইল"
+
+msgid "Full Name"
+msgstr "পূর্ণ নাম"
+
+msgid "Registered"
+msgstr "নিবন্ধিত"
+
+msgid "Approve"
+msgstr "অনুমোদন করুন"
+
+msgid "Reject"
+msgstr "প্রত্যাখ্যান করুন"
+
+msgid "No pending approvals."
+msgstr "অনুমোদনের অপেক্ষায় কিছু নেই।"
+
+msgid "Notification Preference Requests"
+msgstr "নোটিফিকেশন পছন্দের অনুরোধ"
+
+msgid "Requested"
+msgstr "অনুরোধ করা হয়েছে"
+
+msgid "Frequency"
+msgstr "ফ্রিকোয়েন্সি"
+
+msgid "Channels"
+msgstr "চ্যানেল"
+
+msgid "No pending requests."
+msgstr "অপেক্ষমাণ কোনো অনুরোধ নেই।"
+
+msgid "Recent decisions"
+msgstr "সাম্প্রতিক সিদ্ধান্ত"
+
+msgid "Status"
+msgstr "অবস্থা"
+
+msgid "Reviewed by"
+msgstr "পর্যালোচনা করেছেন"
+
+msgid "Reviewed"
+msgstr "পর্যালোচিত"
+
+msgid "No decisions yet."
+msgstr "এখনো কোনো সিদ্ধান্ত নেওয়া হয়নি।"
+
+msgid "To find your numeric Telegram Chat ID: open Telegram, search for"
+msgstr "আপনার সংখ্যাসূচক টেলিগ্রাম চ্যাট আইডি খুঁজে পেতে: টেলিগ্রাম খুলুন, খুঁজুন"
+
+msgid "@userinfobot"
+msgstr "@userinfobot"
+
+msgid ", and send it any message — it replies instantly with your ID."
+msgstr ", এবং যেকোনো মেসেজ পাঠান — এটি সাথে সাথে আপনার আইডি দিয়ে উত্তর দেবে।"
+
+msgid "Save Changes"
+msgstr "পরিবর্তন সংরক্ষণ করুন"
+
+msgid "Expense Categories"
+msgstr "খরচের ক্যাটাগরি"
+
+msgid "(existing)"
+msgstr "(বিদ্যমান)"
+
+msgid "Income Categories"
+msgstr "আয়ের ক্যাটাগরি"
+
+msgid "Payment Methods"
+msgstr "পেমেন্ট মেথড"
+
+msgid "User Activity (Time Spent)"
+msgstr "ব্যবহারকারীর কার্যকলাপ (ব্যয়িত সময়)"
+
+msgid "Sessions"
+msgstr "সেশন"
+
+msgid "Total Time (min)"
+msgstr "মোট সময় (মিনিট)"
+
+msgid "No activity yet."
+msgstr "এখনো কোনো কার্যকলাপ নেই।"
+
+msgid "User Approvals"
+msgstr "ব্যবহারকারী অনুমোদন"
+
+msgid "Joined"
+msgstr "যোগদান"
+
+msgid "Active"
+msgstr "সক্রিয়"
+
+msgid "Deactivated"
+msgstr "নিষ্ক্রিয় করা হয়েছে"
+
+msgid "No approved users yet."
+msgstr "এখনো কোনো অনুমোদিত ব্যবহারকারী নেই।"
+
+msgid "No rejected registrations."
+msgstr "কোনো প্রত্যাখ্যাত নিবন্ধন নেই।"
+
+msgid "All Users"
+msgstr "সব ব্যবহারকারী"
+
+msgid "Role"
+msgstr "ভূমিকা"
+
+msgid "No users yet."
+msgstr "এখনো কোনো ব্যবহারকারী নেই।"
+
+msgid "Add"
+msgstr "যোগ করুন"
+
+msgid "Dashboard"
+msgstr "ড্যাশবোর্ড"
+
+msgid "All Transactions"
+msgstr "সব লেনদেন"
+
+msgid "Reports"
+msgstr "রিপোর্ট"
+
+msgid "Others"
+msgstr "অন্যান্য"
+
+msgid "Calendar"
+msgstr "ক্যালেন্ডার"
+
+msgid "Spreadsheet"
+msgstr "স্প্রেডশিট"
+
+msgid "Budgets"
+msgstr "বাজেট"
+
+msgid "Detail Reports"
+msgstr "বিস্তারিত রিপোর্ট"
+
+msgid "Manage Categories"
+msgstr "ক্যাটাগরি পরিচালনা"
+
+msgid "Notification Preferences"
+msgstr "নোটিফিকেশন পছন্দ"
+
+msgid "About"
+msgstr "সম্পর্কে"
+
+msgid "Admin Works"
+msgstr "অ্যাডমিন কার্যক্রম"
+
+msgid "Approvals"
+msgstr "অনুমোদন"
+
+msgid "Notification Requests"
+msgstr "নোটিফিকেশন অনুরোধ"
+
+msgid "Activity"
+msgstr "কার্যকলাপ"
+
+msgid "Eng"
+msgstr "Eng"
+
+msgid "Logout"
+msgstr "লগআউট"
+
+msgid "Add Transaction"
+msgstr "লেনদেন যোগ করুন"
+
+msgid "Developed by"
+msgstr "তৈরি করেছেন"
+
+msgid "Jikrul Sayeed"
+msgstr "Jikrul Sayeed"
+
+msgid "Mail"
+msgstr "মেইল"
+
+msgid "LinkedIn"
+msgstr "লিংকডইন"
+
+msgid "All rights reserved."
+msgstr "সর্বস্বত্ব সংরক্ষিত।"
+
+msgid "View"
+msgstr "দেখা হয়েছে"
+
+msgid "Your ledger."
+msgstr "আপনার হিসাব খাতা।"
+
+msgid "Nobody else's business."
+msgstr "অন্য কারও বিষয় নয়।"
+
+msgid "Go to Dashboard"
+msgstr "ড্যাশবোর্ডে যান"
+
+msgid "How data is protected"
+msgstr "কীভাবে তথ্য সুরক্ষিত থাকে"
+
+msgid "This Month"
+msgstr "এই মাস"
+
+msgid "Balanced"
+msgstr "ভারসাম্যপূর্ণ"
+
+msgid "Salary"
+msgstr "বেতন"
+
+msgid "Groceries"
+msgstr "মুদি সামগ্রী"
+
+msgid "Utilities"
+msgstr "ইউটিলিটি"
+
+msgid "Transport"
+msgstr "যাতায়াত"
+
+msgid "Net"
+msgstr "নেট"
+
+msgid "Active Users"
+msgstr "সক্রিয় ব্যবহারকারী"
+
+msgid "Transactions Logged"
+msgstr "লগ করা লেনদেন"
+
+msgid "Categories Tracked"
+msgstr "ট্র্যাক করা ক্যাটাগরি"
+
+msgid "Days Running"
+msgstr "চলমান দিন"
+
+msgid "Overview"
+msgstr "সারসংক্ষেপ"
+
+msgid "How it works"
+msgstr "যেভাবে কাজ করে"
+
+msgid "Security"
+msgstr "নিরাপত্তা"
+
+msgid "Features"
+msgstr "বৈশিষ্ট্য"
+
+msgid "Tech stack"
+msgstr "টেক স্ট্যাক"
+
+msgid "FAQ"
+msgstr "সচরাচর জিজ্ঞাসা"
+
+msgid "What is DailyLedger?"
+msgstr "DailyLedger কী?"
+
+msgid "Track daily spending"
+msgstr "দৈনিক খরচ ট্র্যাক করুন"
+
+msgid "Add an expense or income in a few seconds, from any device."
+msgstr "যেকোনো ডিভাইস থেকে কয়েক সেকেন্ডে একটি খরচ বা আয় যোগ করুন।"
+
+msgid "Categorized &amp; organized"
+msgstr "শ্রেণিবদ্ধ ও সুসংগঠিত"
+
+msgid "Preset categories to start, fully customizable per user."
+msgstr "শুরু করার জন্য পূর্বনির্ধারিত ক্যাটাগরি, প্রতিটি ব্যবহারকারীর জন্য সম্পূর্ণ কাস্টমাইজযোগ্য।"
+
+msgid "Visual reports"
+msgstr "ভিজ্যুয়াল রিপোর্ট"
+
+msgid "Charts, category breakdowns, and exportable images."
+msgstr "চার্ট, ক্যাটাগরি বিশ্লেষণ এবং এক্সপোর্টযোগ্য ছবি।"
+
+msgid "Budgets &amp; alerts"
+msgstr "বাজেট ও সতর্কতা"
+
+msgid "Set monthly limits per category, get warned before overspending."
+msgstr "প্রতিটি ক্যাটাগরির জন্য মাসিক সীমা নির্ধারণ করুন, অতিরিক্ত খরচের আগেই সতর্ক হন।"
+
+msgid "Process"
+msgstr "প্রক্রিয়া"
+
+msgid "From entry to insight, in four steps"
+msgstr "এন্ট্রি থেকে ইনসাইট, চার ধাপে"
+
+msgid "You log a transaction"
+msgstr "আপনি একটি লেনদেন লগ করেন"
+
+msgid "Amount, category, payment method, optional note — takes seconds."
+msgstr "পরিমাণ, ক্যাটাগরি, পেমেন্ট মেথড, ঐচ্ছিক নোট — মাত্র কয়েক সেকেন্ড লাগে।"
+
+msgid "It's saved to your workspace only"
+msgstr "এটি শুধুমাত্র আপনার ওয়ার্কস্পেসে সংরক্ষিত হয়"
+
+msgid "Every record is tied to your account's isolated tenant — never shared."
+msgstr "প্রতিটি রেকর্ড আপনার অ্যাকাউন্টের পৃথক টেন্যান্টের সাথে যুক্ত — কখনো শেয়ার করা হয় না।"
+
+msgid "Dashboard updates instantly"
+msgstr "ড্যাশবোর্ড তাৎক্ষণিক আপডেট হয়"
+
+msgid "Today, this week, this month — all recalculated live."
+msgstr "আজ, এই সপ্তাহ, এই মাস — সব লাইভ পুনর্গণনা করা হয়।"
+
+msgid "Reports &amp; budgets track trends"
+msgstr "রিপোর্ট ও বাজেট প্রবণতা ট্র্যাক করে"
+
+msgid "Category breakdowns, budget usage, and exportable charts, anytime."
+msgstr "যেকোনো সময় ক্যাটাগরি বিশ্লেষণ, বাজেট ব্যবহার এবং এক্সপোর্টযোগ্য চার্ট।"
+
+msgid "Trust"
+msgstr "বিশ্বাস"
+
+msgid "Security &amp; privacy"
+msgstr "নিরাপত্তা ও গোপনীয়তা"
+
+msgid "Your data is yours alone — not even a Super Admin can see it."
+msgstr "আপনার তথ্য শুধুমাত্র আপনার — সুপার অ্যাডমিনও এটি দেখতে পারেন না।"
+
+msgid ""
+"Every transaction, category, and budget is tied to your own isolated "
+"workspace, enforced in code on every single request — not just hidden in the "
+"interface."
+msgstr "প্রতিটি লেনদেন, ক্যাটাগরি এবং বাজেট আপনার নিজস্ব পৃথক ওয়ার্কস্পেসের সাথে যুক্ত, যা প্রতিটি রিকোয়েস্টে কোডে বলবৎ করা হয় — শুধু ইন্টারফেসে লুকানো নয়।"
+
+msgid "Financial data is"
+msgstr "আর্থিক তথ্য"
+
+msgid "never"
+msgstr "কখনো না"
+
+msgid ""
+"reachable through the admin panel, including by accounts with full admin/"
+"superuser access."
+msgstr "অ্যাডমিন প্যানেলের মাধ্যমে অ্যাক্সেসযোগ্য, এমনকি সম্পূর্ণ অ্যাডমিন/সুপারইউজার অ্যাক্সেসসম্পন্ন অ্যাকাউন্টের ক্ষেত্রেও নয়।"
+
+msgid ""
+"Passwords are hashed with industry-standard one-way hashing — never stored "
+"or visible in plain text, not even to developers."
+msgstr "পাসওয়ার্ড ইন্ডাস্ট্রি-স্ট্যান্ডার্ড ওয়ান-ওয়ে হ্যাশিং দিয়ে হ্যাশ করা হয় — সাধারণ টেক্সটে কখনো সংরক্ষিত বা দৃশ্যমান হয় না, এমনকি ডেভেলপারদের কাছেও নয়।"
+
+msgid "All traffic is encrypted in transit over HTTPS."
+msgstr "সমস্ত ট্রাফিক HTTPS-এর মাধ্যমে এনক্রিপ্ট করা থাকে।"
+
+msgid ""
+"New accounts require Super Admin approval before they can log in at all."
+msgstr "নতুন অ্যাকাউন্ট লগইন করার আগে সুপার অ্যাডমিনের অনুমোদন প্রয়োজন।"
+
+msgid "Capabilities"
+msgstr "সক্ষমতা"
+
+msgid "Multi-user, fully isolated workspaces"
+msgstr "মাল্টি-ইউজার, সম্পূর্ণ পৃথক ওয়ার্কস্পেস"
+
+#, python-format
+msgid "Budgets with 80%% / 100%% warnings"
+msgstr "৮০%% / ১০০%% সতর্কতাসহ বাজেট"
+
+msgid "Calendar &amp; spreadsheet-style views"
+msgstr "ক্যালেন্ডার ও স্প্রেডশিট-স্টাইল ভিউ"
+
+msgid "Detail reports with charts &amp; JPG export"
+msgstr "চার্ট ও JPG এক্সপোর্টসহ বিস্তারিত রিপোর্ট"
+
+msgid "Email &amp; Telegram summary notifications"
+msgstr "ইমেইল ও টেলিগ্রাম সারাংশ নোটিফিকেশন"
+
+msgid "Full audit log for Super Admins"
+msgstr "সুপার অ্যাডমিনদের জন্য সম্পূর্ণ অডিট লগ"
+
+msgid "Guided setup wizard for new users"
+msgstr "নতুন ব্যবহারকারীদের জন্য গাইডেড সেটআপ উইজার্ড"
+
+msgid "Approval workflow for new accounts"
+msgstr "নতুন অ্যাকাউন্টের জন্য অনুমোদন প্রক্রিয়া"
+
+msgid "Under the hood"
+msgstr "ভেতরের প্রযুক্তি"
+
+msgid "Django 5.2"
+msgstr "Django 5.2"
+
+msgid "PostgreSQL"
+msgstr "PostgreSQL"
+
+msgid "Tailwind CSS"
+msgstr "Tailwind CSS"
+
+msgid "Chart.js"
+msgstr "Chart.js"
+
+msgid "Gunicorn + Nginx"
+msgstr "Gunicorn + Nginx"
+
+msgid "Self-hosted VM"
+msgstr "সেলফ-হোস্টেড ভিএম"
+
+msgid "Questions"
+msgstr "প্রশ্ন"
+
+msgid "Frequently asked"
+msgstr "সচরাচর জিজ্ঞাসিত"
+
+msgid ""
+"No. Every query in the app is scoped to your own workspace, and financial "
+"data is never exposed through the admin panel — not even to Super Admins."
+msgstr "না। অ্যাপের প্রতিটি কোয়েরি আপনার নিজস্ব ওয়ার্কস্পেসের মধ্যে সীমাবদ্ধ, এবং আর্থিক তথ্য কখনো অ্যাডমিন প্যানেলের মাধ্যমে প্রকাশ পায় না — এমনকি সুপার অ্যাডমিনদের কাছেও নয়।"
+
+msgid ""
+"Yes — anytime, from Others → Manage Categories. Existing ones can be "
+"deactivated (hidden) but never deleted, so your history stays intact."
+msgstr "হ্যাঁ — যেকোনো সময়, Others → Manage Categories থেকে। বিদ্যমান ক্যাটাগরি নিষ্ক্রিয় (লুকানো) করা যায় কিন্তু মুছে ফেলা যায় না, তাই আপনার ইতিহাস অক্ষুণ্ণ থাকে।"
+
+msgid ""
+"Registrations start pending. A Super Admin reviews and approves (or rejects) "
+"each one before login is possible."
+msgstr "নিবন্ধন প্রথমে অপেক্ষমাণ থাকে। লগইন করার আগে একজন সুপার অ্যাডমিন প্রতিটি পর্যালোচনা করে অনুমোদন (বা প্রত্যাখ্যান) করেন।"
+
+msgid ""
+"Choose a frequency in Notification Preferences. A Super Admin approves the "
+"request, and from then on your summary arrives automatically by Email and/or "
+"Telegram."
+msgstr "Notification Preferences-এ একটি ফ্রিকোয়েন্সি বেছে নিন। একজন সুপার অ্যাডমিন অনুরোধটি অনুমোদন করলে, তারপর থেকে আপনার সারাংশ স্বয়ংক্রিয়ভাবে ইমেইল ও/অথবা টেলিগ্রামে আসবে।"
+
+msgid ""
+"Reports and Detail Reports charts can be exported as JPG images directly "
+"from the page."
+msgstr "Reports এবং Detail Reports-এর চার্ট পৃষ্ঠা থেকে সরাসরি JPG ছবি হিসেবে এক্সপোর্ট করা যায়।"
+
+msgid "KUET · EEE · 2k15"
+msgstr "KUET · EEE · 2k15"
+
+msgid "GitHub"
+msgstr "GitHub"
+
+msgid "View on GitHub"
+msgstr "GitHub-এ দেখুন"
+
+msgid "&larr; Back to Login"
+msgstr "&larr; লগইনে ফিরে যান"
+
+msgid "New Budget"
+msgstr "নতুন বাজেট"
+
+msgid "Save Budget"
+msgstr "বাজেট সংরক্ষণ করুন"
+
+msgid "Save Transaction"
+msgstr "লেনদেন সংরক্ষণ করুন"
+
+msgid "Delete"
+msgstr "মুছুন"
+
+msgid "+ New Budget"
+msgstr "+ নতুন বাজেট"
+
+msgid "Remove"
+msgstr "মুছুন"
+
+msgid "Budget exceeded"
+msgstr "বাজেট অতিক্রম করেছে"
+
+msgid "Approaching budget limit"
+msgstr "বাজেট সীমার কাছাকাছি"
+
+msgid "No budgets set for this month yet."
+msgstr "এই মাসের জন্য এখনো কোনো বাজেট নির্ধারণ করা হয়নি।"
+
+msgid "&larr; Prev"
+msgstr "&larr; পূর্ববর্তী"
+
+msgid "Next &rarr;"
+msgstr "পরবর্তী &rarr;"
+
+msgid "Mon"
+msgstr "সোম"
+
+msgid "Tue"
+msgstr "মঙ্গল"
+
+msgid "Wed"
+msgstr "বুধ"
+
+msgid "Thu"
+msgstr "বৃহস্পতি"
+
+msgid "Fri"
+msgstr "শুক্র"
+
+msgid "Sat"
+msgstr "শনি"
+
+msgid "Sun"
+msgstr "রবি"
+
+msgid "Delete Transaction?"
+msgstr "লেনদেন মুছবেন?"
+
+msgid "on"
+msgstr "চালু"
+
+msgid ". This cannot be undone."
+msgstr "। এটি পূর্বাবস্থায় ফেরানো যাবে না।"
+
+msgid "Yes, Delete"
+msgstr "হ্যাঁ, মুছুন"
+
+msgid "Cancel"
+msgstr "বাতিল"
+
+msgid "Remove Budget?"
+msgstr "বাজেট মুছবেন?"
+
+msgid "Yes, Remove"
+msgstr "হ্যাঁ, মুছে ফেলুন"
+
+msgid "In Hand"
+msgstr "হাতে থাকা"
+
+msgid "Total Balance"
+msgstr "মোট ব্যালেন্স"
+
+msgid "Today's Expense"
+msgstr "আজকের খরচ"
+
+msgid "Today's Income"
+msgstr "আজকের আয়"
+
+msgid "This Week's Expense"
+msgstr "এই সপ্তাহের খরচ"
+
+msgid "Last Week's Expense"
+msgstr "গত সপ্তাহের খরচ"
+
+msgid "This Month's Expense"
+msgstr "এই মাসের খরচ"
+
+msgid "Last Month's Expense"
+msgstr "গত মাসের খরচ"
+
+msgid "Transactions Today"
+msgstr "আজকের লেনদেন"
+
+msgid "Recent Transactions"
+msgstr "সাম্প্রতিক লেনদেন"
+
+msgid "Date"
+msgstr "তারিখ"
+
+msgid "Type"
+msgstr "ধরন"
+
+msgid "Category"
+msgstr "ক্যাটাগরি"
+
+msgid "Amount"
+msgstr "পরিমাণ"
+
+msgid "No transactions yet."
+msgstr "এখনো কোনো লেনদেন নেই।"
+
+msgid "View All Transactions"
+msgstr "সব লেনদেন দেখুন"
+
+msgid "Category/Source"
+msgstr "ক্যাটাগরি/উৎস"
+
+msgid "Payment"
+msgstr "পেমেন্ট"
+
+msgid "Note"
+msgstr "নোট"
+
+msgid "No transactions this day."
+msgstr "এই দিনে কোনো লেনদেন নেই।"
+
+msgid "Last 7 Days"
+msgstr "গত ৭ দিন"
+
+msgid "Last 15 Days"
+msgstr "গত ১৫ দিন"
+
+msgid "This Year"
+msgstr "এই বছর"
+
+msgid "From"
+msgstr "থেকে"
+
+msgid "To"
+msgstr "প্রতি"
+
+msgid "Custom Range"
+msgstr "কাস্টম সময়সীমা"
+
+msgid "Total Income"
+msgstr "মোট আয়"
+
+msgid "Total Expense"
+msgstr "মোট খরচ"
+
+msgid "Top Category"
+msgstr "শীর্ষ ক্যাটাগরি"
+
+msgid "Top Payment Method"
+msgstr "শীর্ষ পেমেন্ট মেথড"
+
+msgid "Income Sources"
+msgstr "আয়ের উৎস"
+
+msgid "Expense Category Distribution"
+msgstr "খরচের ক্যাটাগরি বিতরণ"
+
+msgid "Download JPG"
+msgstr "JPG ডাউনলোড করুন"
+
+msgid "No expense data in this range."
+msgstr "এই সময়সীমায় কোনো খরচের তথ্য নেই।"
+
+msgid "Breakdown"
+msgstr "বিশ্লেষণ"
+
+msgid "Txns"
+msgstr "লেনদেন"
+
+msgid "Total"
+msgstr "মোট"
+
+msgid "Income Source Distribution"
+msgstr "আয়ের উৎস বিতরণ"
+
+msgid "No income data in this range."
+msgstr "এই সময়সীমায় কোনো আয়ের তথ্য নেই।"
+
+msgid "Source"
+msgstr "উৎস"
+
+msgid "Income vs Expense by Method"
+msgstr "মেথড অনুযায়ী আয় বনাম খরচ"
+
+msgid "No payment method data in this range."
+msgstr "এই সময়সীমায় কোনো পেমেন্ট মেথডের তথ্য নেই।"
+
+msgid "Method"
+msgstr "মেথড"
+
+msgid "Categories & Payment Methods"
+msgstr "ক্যাটাগরি ও পেমেন্ট মেথড"
+
+msgid ""
+"Items can't be deleted, to protect your transaction history — but you can "
+"deactivate ones you don't want to see, and add new ones anytime. "
+"Deactivating never hides past transactions from your reports or spreadsheet."
+msgstr "আপনার লেনদেনের ইতিহাস সুরক্ষিত রাখতে আইটেম মুছে ফেলা যায় না — তবে আপনি যেগুলো দেখতে চান না সেগুলো নিষ্ক্রিয় করতে পারেন, এবং যেকোনো সময় নতুন যোগ করতে পারেন। নিষ্ক্রিয় করলে অতীতের লেনদেন আপনার রিপোর্ট বা স্প্রেডশিট থেকে কখনো লুকানো হয় না।"
+
+msgid "None yet."
+msgstr "এখনো কিছু নেই।"
+
+msgid "New or preset expense category"
+msgstr "নতুন বা পূর্বনির্ধারিত খরচের ক্যাটাগরি"
+
+msgid "New or preset income category"
+msgstr "নতুন বা পূর্বনির্ধারিত আয়ের ক্যাটাগরি"
+
+msgid "New or preset payment method"
+msgstr "নতুন বা পূর্বনির্ধারিত পেমেন্ট মেথড"
+
+msgid "Savings"
+msgstr "সঞ্চয়"
+
+msgid "Transactions"
+msgstr "লেনদেন"
+
+msgid "Income vs Expense"
+msgstr "আয় বনাম খরচ"
+
+msgid "Expense by Category"
+msgstr "ক্যাটাগরি অনুযায়ী খরচ"
+
+msgid "Income vs Expense vs Savings"
+msgstr "আয় বনাম খরচ বনাম সঞ্চয়"
+
+msgid "Daily Total"
+msgstr "দৈনিক মোট"
+
+msgid "Category / Source"
+msgstr "ক্যাটাগরি / উৎস"
+
+msgid "Edit"
+msgstr "সম্পাদনা"
+
+msgid "Welcome Back"
+msgstr "স্বাগতম"
+
+msgid "Sign in to access your DailyLedger dashboard."
+msgstr "আপনার DailyLedger ড্যাশবোর্ড অ্যাক্সেস করতে সাইন ইন করুন।"
+
+msgid "Sign In"
+msgstr "সাইন ইন"
+
+msgid "Don't have an account?"
+msgstr "অ্যাকাউন্ট নেই?"
+
+msgid "Sign up"
+msgstr "সাইন আপ"
+
+msgid "Account Created"
+msgstr "অ্যাকাউন্ট তৈরি হয়েছে"
+
+msgid "Your account ("
+msgstr "আপনার অ্যাকাউন্ট ("
+
+msgid "Back to Login"
+msgstr "লগইনে ফিরে যান"
+
+msgid "Create your account"
+msgstr "আপনার অ্যাকাউন্ট তৈরি করুন"
+
+msgid "Sign Up"
+msgstr "সাইন আপ"
+
+msgid "Already have an account?"
+msgstr "ইতিমধ্যে অ্যাকাউন্ট আছে?"
+
+msgid "Log in"
+msgstr "লগইন"

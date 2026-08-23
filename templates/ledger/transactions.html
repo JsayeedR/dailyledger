@@ -1,11 +1,12 @@
 {% extends "base.html" %}
+{% load i18n %}
 {% block title %}Transactions — DailyLedger{% endblock %}
 {% block content %}
-<h1 class="text-2xl font-semibold mb-6">All Transactions</h1>
+<h1 class="text-2xl font-semibold mb-6">{% trans "All Transactions" %}</h1>
 <div class="bg-white shadow rounded-lg p-5">
     <table class="w-full text-sm">
         <thead class="text-left text-gray-500 border-b">
-            <tr><th class="py-2">Date</th><th>Type</th><th>Category / Source</th><th>Payment</th><th>Note</th><th class="text-right">Amount</th><th></th></tr>
+            <tr><th class="py-2">{% trans "Date" %}</th><th>{% trans "Type" %}</th><th>{% trans "Category / Source" %}</th><th>{% trans "Payment" %}</th><th>{% trans "Note" %}</th><th class="text-right">{% trans "Amount" %}</th><th></th></tr>
         </thead>
         <tbody>
             {% for t in transactions %}
@@ -19,11 +20,11 @@
                     {{ currency }} {{ t.amount }}
                 </td>
                 <td class="text-right">
-                    <a href="{% url 'ledger:edit_transaction' t.pk %}" class="text-blue-600 hover:underline text-xs">Edit</a>
+                    <a href="{% url 'ledger:edit_transaction' t.pk %}" class="text-blue-600 hover:underline text-xs">{% trans "Edit" %}</a>
                 </td>
             </tr>
             {% empty %}
-            <tr><td colspan="7" class="py-4 text-center text-gray-400">No transactions yet.</td></tr>
+            <tr><td colspan="7" class="py-4 text-center text-gray-400">{% trans "No transactions yet." %}</td></tr>
             {% endfor %}
         </tbody>
     </table>

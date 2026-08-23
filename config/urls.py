@@ -7,6 +7,7 @@ from ledger import views as ledger_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('i18n/', include('django.conf.urls.i18n')),
     path('login/', account_views.login_view, name='login'),
     path('logout/', account_views.logout_view, name='logout'),
     path('register/', account_views.register, name='register'),

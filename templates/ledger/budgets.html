@@ -1,17 +1,44 @@
 {% extends "base.html" %}
+{% load i18n %}
 {% block title %}Budgets — DailyLedger{% endblock %}
 {% block content %}
 <div class="flex justify-between items-center mb-6">
     <h1 class="text-2xl font-semibold">Budgets — {{ current_month }}/{{ current_year }}</h1>
-    <a href="{% url 'ledger:add_budget' %}" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded text-sm">+ New Budget</a>
+    <a href="{% url 'ledger:add_budget' %}" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded text-sm">{% trans "+ New Budget" %}</a>
 </div>
+
+<details class="bg-white shadow rounded-lg p-5 mb-6 text-sm">
+    <summary class="cursor-pointer font-semibold text-slate-700">{% trans "How budgets work" %} <span class="text-gray-400 font-normal">(English + বাংলা)</span></summary>
+    <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+            <h3 class="font-semibold text-gray-700 mb-2">English</h3>
+            <ul class="list-disc list-inside space-y-1.5 text-gray-600">
+                <li>A budget is a spending <strong>limit you set for one expense category</strong> (e.g. Groceries, Transport), for one specific month.</li>
+                <li><strong>Spent</strong> is the total of all expense transactions logged in that category during that month — it updates automatically as you add transactions, it's never entered by hand.</li>
+                <li><strong>% used</strong> = Spent ÷ Limit × 100. This is what the progress bar shows.</li>
+                <li>The bar turns <span class="text-emerald-600 font-medium">green</span> under 80% used, <span class="text-amber-600 font-medium">amber</span> from 80–99%, and <span class="text-red-600 font-medium">red</span> at 100% or more, with a warning label at each stage.</li>
+                <li>Budgets are <strong>month-specific and do not roll over</strong> — this page always shows the current month, and you need to add a new budget for a category each month you want to track it.</li>
+            </ul>
+        </div>
+        <div lang="bn">
+            <h3 class="font-semibold text-gray-700 mb-2">বাংলা</h3>
+            <ul class="list-disc list-inside space-y-1.5 text-gray-600">
+                <li>বাজেট মানে হলো একটি নির্দিষ্ট মাসের জন্য একটি খরচ ক্যাটাগরিতে (যেমন: বাজার খরচ, যাতায়াত) আপনার নির্ধারণ করা <strong>খরচের সীমা</strong>।</li>
+                <li><strong>খরচ হয়েছে (Spent)</strong> মানে সেই মাসে সেই ক্যাটাগরিতে যোগ করা সব খরচের লেনদেনের যোগফল — এটি আপনি হাতে লেখেন না, নতুন লেনদেন যোগ করলেই স্বয়ংক্রিয়ভাবে আপডেট হয়।</li>
+                <li><strong>% ব্যবহৃত</strong> = খরচ ÷ সীমা × ১০০। প্রোগ্রেস বারে এটাই দেখানো হয়।</li>
+                <li>৮০%-এর নিচে বার <span class="text-emerald-600 font-medium">সবুজ</span>, ৮০–৯৯%-এ <span class="text-amber-600 font-medium">হলুদ</span>, আর ১০০% বা তার বেশি হলে <span class="text-red-600 font-medium">লাল</span> হয়ে যায়, সাথে একটি সতর্কবার্তাও দেখানো হয়।</li>
+                <li>বাজেট <strong>শুধু নির্দিষ্ট মাসের জন্যই প্রযোজ্য, এটি পরের মাসে স্বয়ংক্রিয়ভাবে চলে আসে না</strong> — এই পাতায় সবসময় চলতি মাসের বাজেট দেখানো হয়, তাই প্রতি মাসে ট্র্যাক করতে চাইলে নতুন করে বাজেট যোগ করতে হবে।</li>
+            </ul>
+        </div>
+    </div>
+</details>
 
 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
     {% for b in budgets %}
     <div class="bg-white shadow rounded-lg p-5">
         <div class="flex justify-between mb-2">
             <span class="font-medium">{{ b.category.name }}</span>
-            <a href="{% url 'ledger:delete_budget' b.pk %}" class="text-xs text-red-500 hover:underline">Remove</a>
+            <a href="{% url 'ledger:delete_budget' b.pk %}" class="text-xs text-red-500 hover:underline">{% trans "Remove" %}</a>
         </div>
         <div class="w-full bg-gray-100 rounded-full h-3 mb-2">
             <div class="h-3 rounded-full {% if b.percent_used >= 100 %}bg-red-600{% elif b.percent_used >= 80 %}bg-amber-500{% else %}bg-emerald-500{% endif %}"
@@ -24,13 +51,13 @@
             </span>
         </div>
         {% if b.percent_used >= 100 %}
-        <p class="text-red-600 text-xs mt-2 font-medium">Budget exceeded</p>
+        <p class="text-red-600 text-xs mt-2 font-medium">{% trans "Budget exceeded" %}</p>
         {% elif b.percent_used >= 80 %}
-        <p class="text-amber-600 text-xs mt-2 font-medium">Approaching budget limit</p>
+        <p class="text-amber-600 text-xs mt-2 font-medium">{% trans "Approaching budget limit" %}</p>
         {% endif %}
     </div>
     {% empty %}
-    <p class="text-gray-400 col-span-2">No budgets set for this month yet.</p>
+    <p class="text-gray-400 col-span-2">{% trans "No budgets set for this month yet." %}</p>
     {% endfor %}
 </div>
 {% endblock %}
