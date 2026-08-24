@@ -1,19 +1,22 @@
 """
 Nightly backup: dumps the database and archives the project folder (code +
-media + .env), keeping only the last 30 days. Notifies every Super Admin by
-Email and Telegram when it finishes (success or failure).
+media + .env), keeping only the last 30 days. Pushes both files offsite to
+the archive server via rsync/SSH, then notifies every Super Admin by Email
+and Telegram when it finishes (success or failure).
 
 Intended to run once a day at 12:05 AM Asia/Dhaka via cron:
     5 0 * * * cd /home/app-admin/dailyledger && /home/app-admin/dailyledger/venv/bin/python manage.py run_backup >> /home/app-admin/dailyledger/backups/backup.log 2>&1
 
-Backups land in backups/database/ and backups/project/ inside the project
-folder — both already excluded from git via .gitignore.
+Backups land locally in backups/database/ and backups/project/ inside the
+project folder (both already excluded from git via .gitignore), and are
+also copied offsite to darchive@103.16.152.251:/backup/dailyledger/.
 """
 import os
 import shutil
 import subprocess
 import tarfile
 from datetime import datetime, timedelta
+from pathlib import Path
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
@@ -24,12 +27,22 @@ from accounts import audit, notifications
 
 RETENTION_DAYS = 30
 
+# ---- offsite archive server settings ----
+OFFSITE_SSH_KEY = os.path.expanduser('~/.ssh/id_ed25519')
+OFFSITE_USER = 'darchive'
+OFFSITE_HOST = '103.16.152.251'
+OFFSITE_PORT = '13222'
+OFFSITE_DB_DIR = '/backup/dailyledger/database'
+OFFSITE_PROJECT_DIR = '/backup/dailyledger/project'
+OFFSITE_SSH_OPTS = ['-i', OFFSITE_SSH_KEY, '-p', OFFSITE_PORT, '-o', 'StrictHostKeyChecking=accept-new']
+
 
 class Command(BaseCommand):
-    help = "Backs up the database and project folder, prunes backups older than 30 days, and notifies Super Admins."
+    help = "Backs up the database and project folder, pushes both offsite, prunes backups older than 30 days, and notifies Super Admins."
 
     def add_arguments(self, parser):
         parser.add_argument('--skip-notify', action='store_true', help='Skip sending the admin notification (useful for manual testing).')
+        parser.add_argument('--skip-offsite', action='store_true', help='Skip the offsite rsync push (useful for manual testing).')
 
     def handle(self, *args, **options):
         base_dir = settings.BASE_DIR
@@ -42,10 +55,12 @@ class Command(BaseCommand):
         errors = []
         db_result = None
         project_result = None
+        db_path = None
+        project_path = None
 
         # ---- 1. Database dump ----
         try:
-            db_result = self._dump_database(db_backup_dir, timestamp)
+            db_result, db_path = self._dump_database(db_backup_dir, timestamp)
             self.stdout.write(f"Database dumped: {db_result}")
         except Exception as e:
             errors.append(f"Database dump failed: {e}")
@@ -53,22 +68,39 @@ class Command(BaseCommand):
 
         # ---- 2. Project folder archive ----
         try:
-            project_result = self._archive_project(base_dir, project_backup_dir, timestamp)
+            project_result, project_path = self._archive_project(base_dir, project_backup_dir, timestamp)
             self.stdout.write(f"Project archived: {project_result}")
         except Exception as e:
             errors.append(f"Project archive failed: {e}")
             self.stderr.write(str(e))
 
-        # ---- 3. Retention cleanup ----
+        # ---- 3. Offsite push ----
+        if not options['skip_offsite'] and (db_path or project_path):
+            try:
+                self._push_offsite(db_path, project_path)
+                self.stdout.write("Offsite push to archive server complete.")
+            except Exception as e:
+                errors.append(f"Offsite push failed: {e}")
+                self.stderr.write(str(e))
+
+        # ---- 4. Retention cleanup (local) ----
         try:
             removed = self._cleanup_old_backups(db_backup_dir, project_backup_dir)
             if removed:
-                self.stdout.write(f"Removed {removed} backup(s) older than {RETENTION_DAYS} days.")
+                self.stdout.write(f"Removed {removed} local backup(s) older than {RETENTION_DAYS} days.")
         except Exception as e:
-            errors.append(f"Cleanup failed: {e}")
+            errors.append(f"Local cleanup failed: {e}")
             self.stderr.write(str(e))
 
-        # ---- 4. Notify Super Admins ----
+        # ---- 5. Retention cleanup (offsite) ----
+        if not options['skip_offsite']:
+            try:
+                self._cleanup_offsite()
+            except Exception as e:
+                errors.append(f"Offsite cleanup failed: {e}")
+                self.stderr.write(str(e))
+
+        # ---- 6. Notify Super Admins ----
         if not options['skip_notify']:
             self._notify_admins(db_result, project_result, errors, timestamp)
 
@@ -85,7 +117,7 @@ class Command(BaseCommand):
                 action='BACKUP_SUCCESS',
                 target_type='Backup',
                 target_id=timestamp,
-                detail='Database and project backups completed successfully.',
+                detail='Database and project backups completed successfully (local + offsite).',
             )
             self.stdout.write(self.style.SUCCESS("Backup finished successfully."))
 
@@ -121,7 +153,7 @@ class Command(BaseCommand):
             raise
 
         size_kb = dump_path.stat().st_size // 1024
-        return f"{dump_path.name} ({size_kb} KB)"
+        return f"{dump_path.name} ({size_kb} KB)", dump_path
 
     def _archive_project(self, base_dir, project_backup_dir, timestamp):
         archive_path = project_backup_dir / f"dailyledger_project_{timestamp}.tar.gz"
@@ -139,7 +171,37 @@ class Command(BaseCommand):
             tar.add(base_dir, arcname=base_dir.name, filter=_filter)
 
         size_mb = archive_path.stat().st_size / (1024 * 1024)
-        return f"{archive_path.name} ({size_mb:.1f} MB)"
+        return f"{archive_path.name} ({size_mb:.1f} MB)", archive_path
+
+    def _push_offsite(self, db_path, project_path):
+        # make sure remote folders exist
+        subprocess.run(
+            ['ssh'] + OFFSITE_SSH_OPTS + [f'{OFFSITE_USER}@{OFFSITE_HOST}',
+             f'mkdir -p {OFFSITE_DB_DIR} {OFFSITE_PROJECT_DIR}'],
+            check=True, capture_output=True, timeout=30,
+        )
+
+        rsync_ssh = f"ssh -i {OFFSITE_SSH_KEY} -p {OFFSITE_PORT} -o StrictHostKeyChecking=accept-new"
+
+        if db_path:
+            subprocess.run(
+                ['rsync', '-avz', '-e', rsync_ssh, str(db_path),
+                 f'{OFFSITE_USER}@{OFFSITE_HOST}:{OFFSITE_DB_DIR}/'],
+                check=True, capture_output=True, timeout=300,
+            )
+        if project_path:
+            subprocess.run(
+                ['rsync', '-avz', '-e', rsync_ssh, str(project_path),
+                 f'{OFFSITE_USER}@{OFFSITE_HOST}:{OFFSITE_PROJECT_DIR}/'],
+                check=True, capture_output=True, timeout=300,
+            )
+
+    def _cleanup_offsite(self):
+        cleanup_cmd = f"find {OFFSITE_DB_DIR} {OFFSITE_PROJECT_DIR} -type f -mtime +{RETENTION_DAYS} -delete"
+        subprocess.run(
+            ['ssh'] + OFFSITE_SSH_OPTS + [f'{OFFSITE_USER}@{OFFSITE_HOST}', cleanup_cmd],
+            check=True, capture_output=True, timeout=30,
+        )
 
     def _cleanup_old_backups(self, db_backup_dir, project_backup_dir):
         cutoff = datetime.now() - timedelta(days=RETENTION_DAYS)
@@ -172,7 +234,7 @@ class Command(BaseCommand):
             for e in errors:
                 lines.append(f"  - {e}")
         lines.append("")
-        lines.append(f"Backups older than {RETENTION_DAYS} days are automatically removed.")
+        lines.append(f"Backups older than {RETENTION_DAYS} days are automatically removed (local + offsite).")
         body = "\n".join(lines)
 
         telegram_text = f"{'✅' if success else '❌'} " + subject + "\n\n" + "\n".join(
