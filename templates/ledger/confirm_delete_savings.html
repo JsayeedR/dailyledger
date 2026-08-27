@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}Delete Savings Entry — DailyLedger{% endblock %}
+{% block container_width %}max-w-3xl{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-semibold mb-6">{% trans "Delete Savings Entry?" %}</h1>
+<div class="bg-white shadow rounded-lg p-6 max-w-lg mx-auto">
+    <p class="mb-4">
+        This will permanently delete the {{ entry.get_entry_type_display }} of
+        <strong>{{ entry.amount }}</strong> {% trans "in" %} <strong>{{ entry.category.name }}</strong>
+        {% trans "on" %} <strong>{{ entry.date }}</strong>{% trans ". This cannot be undone." %}
+    </p>
+    <form method="post">
+        {% csrf_token %}
+        <div class="flex gap-3">
+            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded font-medium">
+                {% trans "Yes, Delete" %}
+            </button>
+            <a href="{% url 'ledger:savings_list' %}" class="bg-gray-100 hover:bg-gray-200 px-5 py-2 rounded font-medium">
+                {% trans "Cancel" %}
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

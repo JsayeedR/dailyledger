@@ -7,8 +7,8 @@ from django.contrib import messages
 from django.utils.translation import gettext as _
 from django.utils import timezone
 from django.db.models import Sum, Q, Count
-from .models import Transaction, TransactionType, Budget, Category, PaymentMethod
-from .forms import TransactionForm, BudgetForm
+from .models import Transaction, TransactionType, Budget, Category, PaymentMethod, SavingsTransaction, SavingsCategory, SavingsEntryType
+from .forms import TransactionForm, BudgetForm, SavingsTransactionForm
 from accounts import audit
 
 
@@ -55,6 +55,14 @@ def dashboard(request):
     month_income = sum_for(month_start, today, TransactionType.INCOME)
     month_expense = sum_for(month_start, today, TransactionType.EXPENSE)
 
+    month_savings_deposits = SavingsTransaction.objects.filter(
+        tenant=tenant, entry_type=SavingsEntryType.DEPOSIT, date__gte=month_start, date__lte=today
+    ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+    month_savings_withdrawals = SavingsTransaction.objects.filter(
+        tenant=tenant, entry_type=SavingsEntryType.WITHDRAWAL, date__gte=month_start, date__lte=today
+    ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+    month_net_savings = month_savings_deposits - month_savings_withdrawals
+
     if today.month == 1:
         last_month, last_month_year = 12, today.year - 1
     else:
@@ -66,18 +74,33 @@ def dashboard(request):
 
     all_income = Transaction.objects.filter(tenant=tenant, type=TransactionType.INCOME).aggregate(total=Sum('amount'))['total'] or Decimal('0')
     all_expense = Transaction.objects.filter(tenant=tenant, type=TransactionType.EXPENSE).aggregate(total=Sum('amount'))['total'] or Decimal('0')
-    total_balance = tenant.opening_balance + all_income - all_expense
+
+    all_deposits = SavingsTransaction.objects.filter(tenant=tenant, entry_type=SavingsEntryType.DEPOSIT).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+    all_withdrawals = SavingsTransaction.objects.filter(tenant=tenant, entry_type=SavingsEntryType.WITHDRAWAL).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+    net_savings = all_deposits - all_withdrawals
+
+    # Total Balance = liquid cash-in-hand only. A savings deposit moves cash
+    # out of this pool (without being an Expense); a withdrawal moves it back
+    # in (without being Income). Income/Expense totals never change.
+    total_balance = tenant.opening_balance + all_income - all_expense - net_savings
 
     context = {
         'month_income': month_income,
         'month_expense': month_expense,
-        'month_in_hand': month_income - month_expense,
+        # "In Hand" this month = Income - Expense - money moved into Savings
+        # this month (plus back any withdrawals) — same methodology as
+        # "Cash in Hand" on Reports (which does this all-time), just scoped
+        # to the current month. Keeping the two formulas in sync is what
+        # makes them reconcile when compared side by side.
+        'month_in_hand': month_income - month_expense - month_net_savings,
+        'month_net_savings': month_net_savings,
         'today_income': today_income,
         'today_expense': today_expense,
         'this_week_expense': this_week_expense,
         'last_week_expense': last_week_expense,
         'last_month_expense': last_month_expense,
         'total_balance': total_balance,
+        'total_savings': net_savings,
         'recent_transactions': Transaction.objects.filter(tenant=tenant).select_related('category', 'payment_method')[:8],
         'currency': tenant.currency,
         'today_count': Transaction.objects.filter(tenant=tenant, date=today).count(),
@@ -131,11 +154,56 @@ def delete_transaction(request, pk):
     return render(request, 'ledger/confirm_delete.html', {'txn': txn})
 
 
+def _combine_with_savings(transactions_qs, savings_qs):
+    """
+    Merge Transaction rows and SavingsTransaction rows into one date-sorted
+    list of plain dicts for display (Transaction list, Day detail). This is
+    display-only — it never feeds into Income/Expense totals or reports.
+    A Savings Deposit is shown as an outflow (like an expense) and a
+    Withdrawal as an inflow (like income), since that's how it affects your
+    pocket that day — but the underlying type stays 'Savings', not
+    Expense/Income.
+    """
+    combined = []
+    for t in transactions_qs:
+        combined.append({
+            'kind': 'transaction',
+            'date': t.date,
+            'type_display': t.get_type_display(),
+            'category_display': t.category.name if t.category else (t.source or '—'),
+            'payment_method_display': t.payment_method.name if t.payment_method else '—',
+            'note': t.description,
+            'amount': t.amount,
+            'is_outflow': t.type == TransactionType.EXPENSE,
+            'edit_url_name': 'ledger:edit_transaction',
+            'pk': t.pk,
+            'created_at': t.created_at,
+        })
+    for s in savings_qs:
+        combined.append({
+            'kind': 'savings',
+            'date': s.date,
+            'type_display': f"Savings — {s.get_entry_type_display()}",
+            'category_display': s.category.name,
+            'payment_method_display': s.payment_method.name if s.payment_method else '—',
+            'note': s.note,
+            'amount': s.amount,
+            'is_outflow': s.entry_type == SavingsEntryType.DEPOSIT,
+            'edit_url_name': 'ledger:edit_savings',
+            'pk': s.pk,
+            'created_at': s.created_at,
+        })
+    combined.sort(key=lambda r: (r['date'], r['created_at']), reverse=True)
+    return combined
+
+
 @login_required
 def transaction_list(request):
     tenant = request.user.tenant
     transactions = Transaction.objects.filter(tenant=tenant).select_related('category', 'payment_method')
-    return render(request, 'ledger/transactions.html', {'transactions': transactions, 'currency': tenant.currency})
+    savings_entries = SavingsTransaction.objects.filter(tenant=tenant).select_related('category', 'payment_method')
+    combined = _combine_with_savings(transactions, savings_entries)
+    return render(request, 'ledger/transactions.html', {'transactions': combined, 'currency': tenant.currency})
 
 
 @login_required
@@ -200,15 +268,24 @@ def calendar_view(request):
     txns = Transaction.objects.filter(tenant=tenant, date__year=year, date__month=month)
     day_data = {}
     for t in txns:
-        entry = day_data.setdefault(t.date.day, {'expense': Decimal('0'), 'income': Decimal('0')})
+        entry = day_data.setdefault(t.date.day, {'expense': Decimal('0'), 'income': Decimal('0'), 'savings_deposit': Decimal('0'), 'savings_withdrawal': Decimal('0')})
         if t.type == TransactionType.EXPENSE:
             entry['expense'] += t.amount
         else:
             entry['income'] += t.amount
 
+    savings_entries = SavingsTransaction.objects.filter(tenant=tenant, date__year=year, date__month=month)
+    for s in savings_entries:
+        entry = day_data.setdefault(s.date.day, {'expense': Decimal('0'), 'income': Decimal('0'), 'savings_deposit': Decimal('0'), 'savings_withdrawal': Decimal('0')})
+        if s.entry_type == SavingsEntryType.DEPOSIT:
+            entry['savings_deposit'] += s.amount
+        else:
+            entry['savings_withdrawal'] += s.amount
+
+    default_day = {'expense': Decimal('0'), 'income': Decimal('0'), 'savings_deposit': Decimal('0'), 'savings_withdrawal': Decimal('0')}
     weeks, week = [], [None] * first_weekday
     for day in range(1, days_in_month + 1):
-        week.append({'day': day, **day_data.get(day, {'expense': Decimal('0'), 'income': Decimal('0')})})
+        week.append({'day': day, **day_data.get(day, default_day)})
         if len(week) == 7:
             weeks.append(week)
             week = []
@@ -231,11 +308,19 @@ def day_detail(request, year, month, day):
     tenant = request.user.tenant
     target_date = date_cls(year, month, day)
     transactions = Transaction.objects.filter(tenant=tenant, date=target_date).select_related('category', 'payment_method')
+    savings_entries = SavingsTransaction.objects.filter(tenant=tenant, date=target_date).select_related('category', 'payment_method')
+    combined = _combine_with_savings(transactions, savings_entries)
+
     income = transactions.filter(type=TransactionType.INCOME).aggregate(total=Sum('amount'))['total'] or Decimal('0')
     expense = transactions.filter(type=TransactionType.EXPENSE).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+    savings_deposit = savings_entries.filter(entry_type=SavingsEntryType.DEPOSIT).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+    savings_withdrawal = savings_entries.filter(entry_type=SavingsEntryType.WITHDRAWAL).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+
     return render(request, 'ledger/day_detail.html', {
-        'transactions': transactions, 'target_date': target_date,
+        'transactions': combined, 'target_date': target_date,
         'income': income, 'expense': expense, 'net': income - expense,
+        'savings_deposit': savings_deposit, 'savings_withdrawal': savings_withdrawal,
+        'savings_net': savings_deposit - savings_withdrawal,
         'currency': tenant.currency,
     })
 
@@ -275,11 +360,33 @@ def spreadsheet_view(request):
 
     rows = [{'category': c, 'amounts': matrix[c.id], 'total': category_totals[c.id]} for c in categories]
 
+    # Savings matrix — completely separate table, never mixed into the
+    # Expense matrix or monthly_total above. Shown as net movement per day
+    # per category (deposit − withdrawal), same "outflow this month" framing
+    # as an expense, purely for visibility.
+    savings_categories = SavingsCategory.objects.filter(tenant=tenant).filter(
+        Q(is_active=True) | Q(entries__date__year=year, entries__date__month=month)
+    ).distinct().order_by('sort_order', 'name')
+    savings_txns = SavingsTransaction.objects.filter(tenant=tenant, date__year=year, date__month=month)
+
+    savings_matrix = {c.id: {d: Decimal('0') for d in day_range} for c in savings_categories}
+    savings_daily_totals = {d: Decimal('0') for d in day_range}
+    for s in savings_txns:
+        signed = s.amount if s.entry_type == SavingsEntryType.DEPOSIT else -s.amount
+        savings_daily_totals[s.date.day] += signed
+        if s.category_id in savings_matrix:
+            savings_matrix[s.category_id][s.date.day] += signed
+
+    savings_category_totals = {c.id: sum(savings_matrix[c.id].values()) for c in savings_categories}
+    savings_monthly_total = sum(savings_daily_totals.values())
+    savings_rows = [{'category': c, 'amounts': savings_matrix[c.id], 'total': savings_category_totals[c.id]} for c in savings_categories]
+
     prev_month, prev_year, next_month, next_year = _month_nav(month, year)
 
     return render(request, 'ledger/spreadsheet.html', {
         'rows': rows, 'day_range': day_range, 'daily_totals': daily_totals,
         'daily_income': daily_income, 'monthly_total': monthly_total, 'monthly_income': monthly_income,
+        'savings_rows': savings_rows, 'savings_daily_totals': savings_daily_totals, 'savings_monthly_total': savings_monthly_total,
         'month': month, 'year': year, 'currency': tenant.currency,
         'month_name': cal_module.month_name[month],
         'prev_month': prev_month, 'prev_year': prev_year,
@@ -321,7 +428,18 @@ def reports_view(request):
     txns = Transaction.objects.filter(tenant=tenant, date__gte=start_date, date__lte=end_date)
     total_income = txns.filter(type=TransactionType.INCOME).aggregate(total=Sum('amount'))['total'] or Decimal('0')
     total_expense = txns.filter(type=TransactionType.EXPENSE).aggregate(total=Sum('amount'))['total'] or Decimal('0')
-    savings = total_income - total_expense
+    net_cash_flow = total_income - total_expense
+
+    savings_entries = SavingsTransaction.objects.filter(tenant=tenant, date__gte=start_date, date__lte=end_date)
+    period_deposits = savings_entries.filter(entry_type=SavingsEntryType.DEPOSIT).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+    period_withdrawals = savings_entries.filter(entry_type=SavingsEntryType.WITHDRAWAL).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+    period_net_savings = period_deposits - period_withdrawals
+
+    all_income = Transaction.objects.filter(tenant=tenant, type=TransactionType.INCOME).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+    all_expense = Transaction.objects.filter(tenant=tenant, type=TransactionType.EXPENSE).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+    all_deposits = SavingsTransaction.objects.filter(tenant=tenant, entry_type=SavingsEntryType.DEPOSIT).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+    all_withdrawals = SavingsTransaction.objects.filter(tenant=tenant, entry_type=SavingsEntryType.WITHDRAWAL).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+    cash_in_hand = tenant.opening_balance + all_income - all_expense - (all_deposits - all_withdrawals)
 
     expense_by_category = (
         txns.filter(type=TransactionType.EXPENSE, category__isnull=False)
@@ -334,8 +452,10 @@ def reports_view(request):
 
     return render(request, 'ledger/reports.html', {
         'range_type': range_type, 'start_date': start_date, 'end_date': end_date, 'label': label,
-        'total_income': total_income, 'total_expense': total_expense, 'savings': savings,
-        'total_income_float': float(total_income), 'total_expense_float': float(total_expense), 'savings_float': float(savings),
+        'total_income': total_income, 'total_expense': total_expense, 'net_cash_flow': net_cash_flow,
+        'period_deposits': period_deposits, 'period_withdrawals': period_withdrawals, 'period_net_savings': period_net_savings,
+        'cash_in_hand': cash_in_hand,
+        'total_income_float': float(total_income), 'total_expense_float': float(total_expense), 'net_cash_flow_float': float(net_cash_flow),
         'txn_count': txns.count(),
         'category_labels': category_labels, 'category_values': category_values,
         'currency': tenant.currency,
@@ -388,6 +508,25 @@ def detail_reports_view(request):
     payment_names = sorted(payment_map.keys())
     payment_breakdown = [{'name': n, **payment_map[n]} for n in payment_names]
 
+    savings_entries = SavingsTransaction.objects.filter(tenant=tenant, date__gte=start_date, date__lte=end_date)
+    savings_qs = (
+        savings_entries.values('category__name', 'entry_type')
+        .annotate(total=Sum('amount'), count=Count('id'))
+    )
+    savings_map = {}
+    for row in savings_qs:
+        name = row['category__name']
+        entry = savings_map.setdefault(name, {'deposit': Decimal('0'), 'withdrawal': Decimal('0'), 'count': 0})
+        if row['entry_type'] == SavingsEntryType.DEPOSIT:
+            entry['deposit'] = row['total']
+        else:
+            entry['withdrawal'] = row['total']
+        entry['count'] += row['count']
+    savings_names = sorted(savings_map.keys())
+    savings_breakdown = [{'name': n, 'net': savings_map[n]['deposit'] - savings_map[n]['withdrawal'], **savings_map[n]} for n in savings_names]
+    total_period_deposits = sum((row['deposit'] for row in savings_breakdown), Decimal('0'))
+    total_period_withdrawals = sum((row['withdrawal'] for row in savings_breakdown), Decimal('0'))
+
     top_category = expense_categories[0]['category__name'] if expense_categories else None
     top_payment = max(payment_map, key=lambda n: payment_map[n]['income'] + payment_map[n]['expense']) if payment_map else None
 
@@ -397,6 +536,9 @@ def detail_reports_view(request):
         'expense_categories': expense_categories,
         'income_sources': income_sources,
         'payment_breakdown': payment_breakdown,
+        'savings_breakdown': savings_breakdown,
+        'total_period_deposits': total_period_deposits,
+        'total_period_withdrawals': total_period_withdrawals,
         'top_category': top_category,
         'top_payment': top_payment,
         'expense_labels': [r['category__name'] for r in expense_categories],
@@ -406,31 +548,124 @@ def detail_reports_view(request):
         'payment_labels': payment_names,
         'payment_income_values': [float(payment_map[n]['income']) for n in payment_names],
         'payment_expense_values': [float(payment_map[n]['expense']) for n in payment_names],
+        'savings_labels': savings_names,
+        'savings_deposit_values': [float(savings_map[n]['deposit']) for n in savings_names],
+        'savings_withdrawal_values': [float(savings_map[n]['withdrawal']) for n in savings_names],
         'currency': tenant.currency,
     })
 
 
 @login_required
 def manage_settings(request):
-    from accounts.signals import DEFAULT_EXPENSE_CATEGORIES, DEFAULT_INCOME_CATEGORIES, DEFAULT_PAYMENT_METHODS
+    from accounts.signals import DEFAULT_EXPENSE_CATEGORIES, DEFAULT_INCOME_CATEGORIES, DEFAULT_PAYMENT_METHODS, DEFAULT_SAVINGS_CATEGORIES
 
     tenant = request.user.tenant
     expense_categories = Category.objects.filter(tenant=tenant, type=TransactionType.EXPENSE).order_by('sort_order', 'name')
     income_categories = Category.objects.filter(tenant=tenant, type=TransactionType.INCOME).order_by('sort_order', 'name')
     payment_methods = PaymentMethod.objects.filter(tenant=tenant).order_by('sort_order', 'name')
+    savings_categories = SavingsCategory.objects.filter(tenant=tenant).order_by('sort_order', 'name')
 
     existing_expense_names = set(expense_categories.values_list('name', flat=True))
     existing_income_names = set(income_categories.values_list('name', flat=True))
     existing_payment_names = set(payment_methods.values_list('name', flat=True))
+    existing_savings_names = set(savings_categories.values_list('name', flat=True))
 
     return render(request, 'ledger/manage_settings.html', {
         'expense_categories': expense_categories,
         'income_categories': income_categories,
         'payment_methods': payment_methods,
+        'savings_categories': savings_categories,
         'suggested_expense': [n for n in DEFAULT_EXPENSE_CATEGORIES if n not in existing_expense_names],
         'suggested_income': [n for n in DEFAULT_INCOME_CATEGORIES if n not in existing_income_names],
         'suggested_payment': [n for n in DEFAULT_PAYMENT_METHODS if n not in existing_payment_names],
+        'suggested_savings': [n for n in DEFAULT_SAVINGS_CATEGORIES if n not in existing_savings_names],
     })
+
+
+@login_required
+def add_savings_category(request):
+    tenant = request.user.tenant
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        if name:
+            SavingsCategory.objects.get_or_create(tenant=tenant, name=name)
+            messages.success(request, _('Savings category "%(name)s" added.') % {'name': name})
+        else:
+            messages.error(request, _('Please provide a valid name.'))
+    return redirect('ledger:manage_settings')
+
+
+@login_required
+def toggle_savings_category(request, pk):
+    tenant = request.user.tenant
+    cat = get_object_or_404(SavingsCategory, pk=pk, tenant=tenant)
+    if request.method == 'POST':
+        cat.is_active = not cat.is_active
+        cat.save()
+    return redirect('ledger:manage_settings')
+
+
+@login_required
+def savings_list(request):
+    tenant = request.user.tenant
+    categories = SavingsCategory.objects.filter(tenant=tenant).order_by('sort_order', 'name')
+    category_rows = [{'category': c, 'balance': c.balance()} for c in categories]
+    total_savings = sum((row['balance'] for row in category_rows), Decimal('0'))
+
+    entries = SavingsTransaction.objects.filter(tenant=tenant).select_related('category', 'payment_method')
+
+    return render(request, 'ledger/savings.html', {
+        'category_rows': category_rows,
+        'total_savings': total_savings,
+        'entries': entries,
+        'currency': tenant.currency,
+    })
+
+
+@login_required
+def add_savings(request):
+    tenant = request.user.tenant
+    if request.method == 'POST':
+        form = SavingsTransactionForm(request.POST, tenant=tenant)
+        if form.is_valid():
+            entry = form.save(commit=False)
+            entry.tenant = tenant
+            entry.save()
+            audit.log(actor=request.user, action='SAVINGS_CREATE', target_type='SavingsTransaction', target_id=entry.id, request=request)
+            messages.success(request, _('Savings entry added successfully.'))
+            return redirect('ledger:savings_list')
+    else:
+        form = SavingsTransactionForm(tenant=tenant, initial={'date': timezone.localdate(), 'entry_type': SavingsEntryType.DEPOSIT})
+    return render(request, 'ledger/add_savings.html', {'form': form, 'mode': 'add'})
+
+
+@login_required
+def edit_savings(request, pk):
+    tenant = request.user.tenant
+    entry = get_object_or_404(SavingsTransaction, pk=pk, tenant=tenant)
+    if request.method == 'POST':
+        form = SavingsTransactionForm(request.POST, instance=entry, tenant=tenant)
+        if form.is_valid():
+            form.save()
+            audit.log(actor=request.user, action='SAVINGS_UPDATE', target_type='SavingsTransaction', target_id=entry.id, request=request)
+            messages.success(request, _('Savings entry updated successfully.'))
+            return redirect('ledger:savings_list')
+    else:
+        form = SavingsTransactionForm(instance=entry, tenant=tenant)
+    return render(request, 'ledger/add_savings.html', {'form': form, 'mode': 'edit', 'entry': entry})
+
+
+@login_required
+def delete_savings(request, pk):
+    tenant = request.user.tenant
+    entry = get_object_or_404(SavingsTransaction, pk=pk, tenant=tenant)
+    if request.method == 'POST':
+        entry_id = entry.id
+        entry.delete()
+        audit.log(actor=request.user, action='SAVINGS_DELETE', target_type='SavingsTransaction', target_id=entry_id, request=request)
+        messages.success(request, _('Savings entry deleted.'))
+        return redirect('ledger:savings_list')
+    return render(request, 'ledger/confirm_delete_savings.html', {'entry': entry})
 
 
 @login_required

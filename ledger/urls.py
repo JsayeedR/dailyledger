@@ -12,6 +12,10 @@ urlpatterns = [
     path('budgets/', views.budget_list, name='budget_list'),
     path('budgets/add/', views.add_budget, name='add_budget'),
     path('budgets/<uuid:pk>/delete/', views.delete_budget, name='delete_budget'),
+    path('savings/', views.savings_list, name='savings_list'),
+    path('savings/add/', views.add_savings, name='add_savings'),
+    path('savings/<uuid:pk>/edit/', views.edit_savings, name='edit_savings'),
+    path('savings/<uuid:pk>/delete/', views.delete_savings, name='delete_savings'),
     path('calendar/', views.calendar_view, name='calendar'),
     path('calendar/<int:year>/<int:month>/<int:day>/', views.day_detail, name='day_detail'),
     path('spreadsheet/', views.spreadsheet_view, name='spreadsheet'),
@@ -22,4 +26,6 @@ urlpatterns = [
     path('settings/category/<uuid:pk>/toggle/', views.toggle_category, name='toggle_category'),
     path('settings/payment-method/add/', views.add_payment_method, name='add_payment_method'),
     path('settings/payment-method/<uuid:pk>/toggle/', views.toggle_payment_method, name='toggle_payment_method'),
+    path('settings/savings-category/add/', views.add_savings_category, name='add_savings_category'),
+    path('settings/savings-category/<uuid:pk>/toggle/', views.toggle_savings_category, name='toggle_savings_category'),
 ]

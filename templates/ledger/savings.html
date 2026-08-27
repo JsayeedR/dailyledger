@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}Savings — DailyLedger{% endblock %}
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-semibold">{% trans "Savings" %}</h1>
+    <a href="{% url 'ledger:add_savings' %}" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded font-medium text-sm">
+        + {% trans "Add Savings Entry" %}
+    </a>
+</div>
+
+<div class="bg-slate-800 text-white rounded-lg p-5 mb-6">
+    <p class="text-sm text-slate-300 font-medium">{% trans "Total Saved" %}</p>
+    <p class="text-3xl font-bold mt-1">{{ currency }} {{ total_savings|floatformat:2 }}</p>
+    <p class="text-xs text-slate-400 mt-1">{% trans "This amount has already been moved out of your cash-in-hand on the Dashboard." %}</p>
+</div>
+
+<h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">{% trans "By Category" %}</h2>
+<div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+    {% for row in category_rows %}
+    <div class="bg-white shadow rounded-lg p-4">
+        <p class="text-xs text-gray-500 {% if not row.category.is_active %}line-through{% endif %}">{{ row.category.name }}</p>
+        <p class="text-lg font-semibold mt-1">{{ currency }} {{ row.balance|floatformat:2 }}</p>
+    </div>
+    {% empty %}
+    <p class="text-gray-400 col-span-full">{% trans "No savings categories yet — add one from Manage Categories." %}</p>
+    {% endfor %}
+</div>
+
+<div class="bg-white shadow rounded-lg p-5">
+    <h2 class="font-semibold text-lg mb-3">{% trans "All Savings Entries" %}</h2>
+    <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+        <thead class="text-left text-gray-500 border-b">
+            <tr>
+                <th class="py-2">{% trans "Date" %}</th>
+                <th>{% trans "Category" %}</th>
+                <th>{% trans "Type" %}</th>
+                <th>{% trans "Payment Method" %}</th>
+                <th class="text-right">{% trans "Amount" %}</th>
+                <th class="text-right">{% trans "Actions" %}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for e in entries %}
+            <tr class="border-b last:border-0">
+                <td class="py-2">{{ e.date }}</td>
+                <td>{{ e.category.name }}</td>
+                <td>{{ e.get_entry_type_display }}</td>
+                <td>{{ e.payment_method.name|default:"—" }}</td>
+                <td class="text-right {% if e.entry_type == 'WITHDRAWAL' %}text-emerald-600{% else %}text-amber-600{% endif %}">
+                    {{ currency }} {{ e.amount }}
+                </td>
+                <td class="text-right whitespace-nowrap">
+                    <a href="{% url 'ledger:edit_savings' e.pk %}" class="text-blue-600 hover:underline text-xs">{% trans "Edit" %}</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="py-4 text-center text-gray-400">{% trans "No savings entries yet." %}</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    </div>
+</div>
+{% endblock %}

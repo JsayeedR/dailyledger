@@ -16,15 +16,21 @@
     </div>
     <div class="bg-amber-50 border border-amber-200 rounded-lg p-5">
         <p class="text-sm text-amber-700 font-medium">{% trans "In Hand" %}</p>
-        <p class="text-2xl font-bold text-amber-700 mt-1">{{ currency }} {{ month_in_hand }}</p>
+        <p class="text-2xl font-bold text-amber-700 mt-1">{{ currency }} {{ month_in_hand|floatformat:2 }}</p>
+        <p class="text-xs text-amber-600 mt-1">{% trans "Income − Expense − Savings this month" %}</p>
     </div>
 </div>
 
 <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">{% trans "Overview" %}</h2>
 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
     <div class="bg-white shadow rounded-lg p-4">
-        <p class="text-xs text-gray-500">{% trans "Total Balance" %}</p>
-        <p class="text-lg font-semibold mt-1">{{ currency }} {{ total_balance }}</p>
+        <p class="text-xs text-gray-500">{% trans "Total Balance (Cash in Hand)" %}</p>
+        <p class="text-lg font-semibold mt-1">{{ currency }} {{ total_balance|floatformat:2 }}</p>
+    </div>
+    <div class="bg-white shadow rounded-lg p-4">
+        <p class="text-xs text-gray-500">{% trans "Total Savings" %}</p>
+        <p class="text-lg font-semibold mt-1 text-amber-600">{{ currency }} {{ total_savings|floatformat:2 }}</p>
+        <a href="{% url 'ledger:savings_list' %}" class="text-xs text-emerald-600 hover:underline">{% trans "View breakdown" %} →</a>
     </div>
     <div class="bg-white shadow rounded-lg p-4">
         <p class="text-xs text-gray-500">{% trans "Today's Expense" %}</p>

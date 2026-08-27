@@ -19,5 +19,6 @@ urlpatterns = [
     path('activity/', views.user_activity_view, name='user_activity'),
     path('users/', views.user_list, name='user_list'),
     path('users/<uuid:user_id>/profile/', views.user_profile_view, name='user_profile'),
+    path('users/<uuid:user_id>/set-notification-preference/', views.set_notification_preference_admin, name='set_notification_preference_admin'),
     path('users/<uuid:user_id>/toggle-active/', views.toggle_user_active, name='toggle_user_active'),
 ]

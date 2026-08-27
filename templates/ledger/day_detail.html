@@ -3,22 +3,29 @@
 {% block title %}{{ target_date }} — DailyLedger{% endblock %}
 {% block content %}
 <h1 class="text-2xl font-semibold mb-6">{{ target_date }}</h1>
-<div class="grid grid-cols-3 gap-4 mb-6 text-center">
+<div class="grid grid-cols-3 gap-4 mb-4 text-center">
     <div class="bg-white shadow rounded-lg p-4"><p class="text-sm text-gray-500">{% trans "Income" %}</p><p class="text-xl font-semibold text-emerald-600">{{ currency }} {{ income }}</p></div>
     <div class="bg-white shadow rounded-lg p-4"><p class="text-sm text-gray-500">{% trans "Expense" %}</p><p class="text-xl font-semibold text-red-600">{{ currency }} {{ expense }}</p></div>
     <div class="bg-white shadow rounded-lg p-4"><p class="text-sm text-gray-500">{% trans "Net" %}</p><p class="text-xl font-semibold">{{ currency }} {{ net }}</p></div>
 </div>
+{% if savings_deposit > 0 or savings_withdrawal > 0 %}
+<div class="grid grid-cols-3 gap-4 mb-6 text-center">
+    <div class="bg-amber-50 border border-amber-200 rounded-lg p-4"><p class="text-sm text-amber-700">{% trans "Savings Deposited" %}</p><p class="text-lg font-semibold text-amber-700">{{ currency }} {{ savings_deposit }}</p></div>
+    <div class="bg-amber-50 border border-amber-200 rounded-lg p-4"><p class="text-sm text-amber-700">{% trans "Savings Withdrawn" %}</p><p class="text-lg font-semibold text-amber-700">{{ currency }} {{ savings_withdrawal }}</p></div>
+    <div class="bg-amber-50 border border-amber-200 rounded-lg p-4"><p class="text-sm text-amber-700">{% trans "Net Savings Change" %}</p><p class="text-lg font-semibold text-amber-700">{{ currency }} {{ savings_net }}</p></div>
+</div>
+{% endif %}
 <div class="bg-white shadow rounded-lg p-5">
 <table class="w-full text-sm">
 <thead class="text-left text-gray-500 border-b"><tr><th class="py-2">{% trans "Type" %}</th><th>{% trans "Category/Source" %}</th><th>{% trans "Payment" %}</th><th>{% trans "Note" %}</th><th class="text-right">{% trans "Amount" %}</th></tr></thead>
 <tbody>
 {% for t in transactions %}
-<tr class="border-b last:border-0">
-<td class="py-2">{{ t.get_type_display }}</td>
-<td>{{ t.category.name|default:t.source|default:"—" }}</td>
-<td>{{ t.payment_method.name|default:"—" }}</td>
-<td>{{ t.description|default:"—" }}</td>
-<td class="text-right {% if t.type == 'EXPENSE' %}text-red-600{% else %}text-emerald-600{% endif %}">{{ currency }} {{ t.amount }}</td>
+<tr class="border-b last:border-0 {% if t.kind == 'savings' %}bg-amber-50{% endif %}">
+<td class="py-2">{{ t.type_display }}{% if t.kind == 'savings' %} <span class="text-[10px] uppercase tracking-wide text-amber-600 font-semibold">{% trans "Savings" %}</span>{% endif %}</td>
+<td>{{ t.category_display }}</td>
+<td>{{ t.payment_method_display }}</td>
+<td>{{ t.note|default:"—" }}</td>
+<td class="text-right {% if t.kind == 'savings' %}text-amber-600{% elif t.is_outflow %}text-red-600{% else %}text-emerald-600{% endif %}">{% if t.is_outflow %}-{% else %}+{% endif %}{{ currency }} {{ t.amount }}</td>
 </tr>
 {% empty %}
 <tr><td colspan="5" class="py-4 text-center text-gray-400">{% trans "No transactions this day." %}</td></tr>

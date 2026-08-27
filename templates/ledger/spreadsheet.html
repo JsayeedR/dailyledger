@@ -43,11 +43,45 @@
 </table>
 </div>
 
+<p class="text-gray-400 text-xs mt-4 mb-2">{% trans "Savings below is shown for reference only and is not part of your Expense total above — a deposit shows as an outflow (−), a withdrawal as an inflow (+)." %}</p>
+<div class="bg-white shadow rounded-lg p-4 overflow-x-auto">
+<table id="savings-spreadsheet-table" class="text-xs border-collapse whitespace-nowrap">
+<thead>
+<tr class="bg-amber-50">
+<th class="border px-2 py-1 text-left sticky left-0 bg-amber-50">{% trans "Savings Category" %}</th>
+{% for d in day_range %}<th class="border px-2 py-1">{{ d }}</th>{% endfor %}
+<th class="border px-2 py-1 font-semibold">{% trans "Net Total" %}</th>
+</tr>
+</thead>
+<tbody>
+{% for row in savings_rows %}
+<tr>
+<td class="border px-2 py-1 text-left sticky left-0 bg-white font-medium">{{ row.category.name }}</td>
+{% for d in day_range %}<td class="border px-2 py-1 text-center">{{ row.amounts|dict_get:d }}</td>{% endfor %}
+<td class="border px-2 py-1 text-center font-semibold">{{ row.total }}</td>
+</tr>
+{% empty %}
+<tr><td colspan="{{ day_range|length|add:2 }}" class="border px-2 py-3 text-center text-gray-400">{% trans "No savings categories yet." %}</td></tr>
+{% endfor %}
+<tr class="bg-amber-100 font-semibold">
+<td class="border px-2 py-1 text-left sticky left-0 bg-amber-100">{% trans "Savings Net Total" %}</td>
+{% for d in day_range %}<td class="border px-2 py-1 text-center">{{ savings_daily_totals|dict_get:d }}</td>{% endfor %}
+<td class="border px-2 py-1 text-center">{{ savings_monthly_total }}</td>
+</tr>
+</tbody>
+</table>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
 function downloadSpreadsheetExcel() {
     const table = document.getElementById('spreadsheet-table');
-    const wb = XLSX.utils.table_to_book(table, { sheet: "{{ month_name }} {{ year }}".slice(0, 31) });
+    const wb = XLSX.utils.table_to_book(table, { sheet: "Expense".slice(0, 31) });
+    const savingsTable = document.getElementById('savings-spreadsheet-table');
+    if (savingsTable) {
+        const savingsSheet = XLSX.utils.table_to_sheet(savingsTable);
+        XLSX.utils.book_append_sheet(wb, savingsSheet, "Savings".slice(0, 31));
+    }
     XLSX.writeFile(wb, "spreadsheet-{{ month_name }}-{{ year }}.xlsx");
 }
 </script>

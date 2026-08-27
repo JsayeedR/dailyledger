@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% if mode == 'edit' %}Edit{% else %}Add{% endif %} Savings Entry — DailyLedger{% endblock %}
+{% block container_width %}max-w-3xl{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-semibold mb-2">{% if mode == 'edit' %}{% trans "Edit Savings Entry" %}{% else %}{% trans "Add Savings Entry" %}{% endif %}</h1>
+<p class="text-gray-500 text-sm mb-6">{% trans "A Deposit moves money out of your cash-in-hand into savings. A Withdrawal moves it back. Neither one affects your Income or Expense totals." %}</p>
+<div class="bg-white shadow rounded-lg p-6 max-w-lg mx-auto">
+    <form method="post">
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+        <div class="bg-red-50 border border-red-200 text-red-700 text-sm rounded px-4 py-3 mb-4">
+            {{ form.non_field_errors|striptags }}
+        </div>
+        {% endif %}
+        {% for field in form %}
+        <div class="mb-4">
+            <label class="block text-sm font-medium mb-1">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}
+                <p class="text-red-600 text-sm mt-1">{{ field.errors|striptags }}</p>
+            {% endif %}
+        </div>
+        {% endfor %}
+        <div class="flex gap-3">
+            <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded font-medium">
+                {% trans "Save Entry" %}
+            </button>
+            {% if mode == 'edit' %}
+            <a href="{% url 'ledger:delete_savings' entry.pk %}" class="bg-red-50 hover:bg-red-100 text-red-600 px-5 py-2 rounded font-medium">
+                {% trans "Delete" %}
+            </a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+{% endblock %}

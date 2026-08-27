@@ -433,4 +433,47 @@ def user_profile_view(request, user_id):
     and activity stats. Never exposes password data or lets the Super
     Admin edit financial info -- that stays fully tenant-isolated."""
     target = get_object_or_404(CustomUser, id=user_id)
-    return render(request, 'accounts/user_profile.html', {'target': target})
+    notif_pref, _created = NotificationPreference.objects.get_or_create(user=target)
+    notif_form = NotificationPreferenceForm(initial={
+        'frequencies': notif_pref.active_frequencies,
+        'email_enabled': notif_pref.active_email_enabled,
+        'telegram_enabled': notif_pref.active_telegram_enabled,
+    })
+    return render(request, 'accounts/user_profile.html', {
+        'target': target, 'notif_pref': notif_pref, 'notif_form': notif_form,
+    })
+
+
+@login_required
+@user_passes_test(is_super_admin)
+def set_notification_preference_admin(request, user_id):
+    """Lets Super Admin directly SET a user's active notification
+    preference, bypassing the normal request/approve flow entirely.
+    Used when Super Admin wants to turn summaries on/off for someone
+    without waiting for that user to submit a request."""
+    target = get_object_or_404(CustomUser, id=user_id)
+    notif_pref, _created = NotificationPreference.objects.get_or_create(user=target)
+
+    if request.method == 'POST':
+        form = NotificationPreferenceForm(request.POST)
+        if form.is_valid():
+            notif_pref.active_frequencies = form.cleaned_data['frequencies']
+            notif_pref.active_email_enabled = form.cleaned_data['email_enabled']
+            notif_pref.active_telegram_enabled = form.cleaned_data['telegram_enabled']
+            notif_pref.review_status = PreferenceReviewStatus.APPROVED
+            notif_pref.reviewed_at = timezone.now()
+            notif_pref.reviewed_by = request.user
+            notif_pref.rejection_reason = ''
+            notif_pref.save()
+            audit.log(
+                actor=request.user, action='SETTINGS_UPDATE',
+                target_type='NotificationPreference', target_id=notif_pref.id,
+                detail=f"Super Admin directly set notification preference for {target.email}: "
+                       f"{notif_pref.active_frequencies} (email={notif_pref.active_email_enabled}, "
+                       f"telegram={notif_pref.active_telegram_enabled})",
+                request=request,
+            )
+            messages.success(request, _('Notification preference set for %(email)s.') % {'email': target.email})
+        else:
+            messages.error(request, _('Please fix the errors below.'))
+    return redirect('accounts:user_profile', user_id=target.id)

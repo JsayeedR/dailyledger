@@ -10,11 +10,28 @@ periods apply to "today" and only sends those:
     Monthly -> only when today is the 1st, summarizes the previous month
     Yearly  -> only when today is Jan 1st, summarizes the previous year
 
-Example crontab entry (server already runs in Asia/Dhaka per TIME_ZONE, but
-cron uses the OS's local time — check `date` on the server and adjust the
-hour/minute below if the OS is on UTC instead of Asia/Dhaka):
+Example crontab entry — the correct line depends on the SERVER OS clock's
+timezone, not on TIME_ZONE in settings.py (that only affects what Django
+computes internally, not when cron actually fires the command):
 
-    1 0 * * * cd /path/to/dailyledger && /path/to/venv/bin/python manage.py send_summaries >> /var/log/dailyledger_summaries.log 2>&1
+  1) Check the server's OS timezone first:  timedatectl   (or just: date)
+
+  2a) If OS clock is Asia/Dhaka already, this fires at the right time:
+      1 0 * * * cd /path/to/dailyledger && /path/to/venv/bin/python manage.py send_summaries >> /var/log/dailyledger_summaries.log 2>&1
+
+  2b) If OS clock is UTC (very common on cloud servers) and you don't want
+      to change the OS timezone, offset the crontab instead — 00:01 Dhaka
+      time = 18:01 UTC the PREVIOUS day, since Dhaka is UTC+6:
+      1 18 * * * cd /path/to/dailyledger && /path/to/venv/bin/python manage.py send_summaries >> /var/log/dailyledger_summaries.log 2>&1
+
+  2c) Cleanest fix if nothing else on the box depends on UTC:
+      sudo timedatectl set-timezone Asia/Dhaka
+      then use the 2a) crontab line.
+
+As a safety net, this command now refuses to actually send unless it's
+being run between 00:00 and 00:59 Asia/Dhaka time (pass --force to
+override for manual testing) — so a wrong crontab hour shows up as a
+loud warning in the log instead of summaries quietly arriving 6 hours late.
 
 Safe to run more than once on the same day — each send is guarded by a
 `last_*_sent_date` field on NotificationPreference so nobody gets duplicates.
@@ -50,14 +67,35 @@ class Command(BaseCommand):
     help = "Sends daily/weekly/monthly/yearly summary notifications to users who have an approved, active preference."
 
     def add_arguments(self, parser):
-        parser.add_argument('--force', action='store_true', help='Ignore the once-per-day guard (useful for manual testing).')
+        parser.add_argument('--force', action='store_true', help='Ignore the once-per-day guard AND the time-of-day check (useful for manual testing).')
         parser.add_argument('--dry-run', action='store_true', help="Print what would be sent without actually sending or marking as sent.")
 
     def handle(self, *args, **options):
         force = options['force']
         dry_run = options['dry_run']
 
-        today = timezone.localtime(timezone.now()).date()
+        now_dhaka = timezone.localtime(timezone.now())
+        today = now_dhaka.date()
+
+        # Safety net: this command is meant to run once, right after midnight
+        # Asia/Dhaka (per TIME_ZONE below). If the server's cron/OS clock is
+        # actually on UTC (a common default), an entry written assuming local
+        # time fires 6 hours late (00:01 UTC = 06:01 Dhaka) — which is exactly
+        # the symptom this guards against. Rather than silently sending late
+        # every day, refuse outside the intended window so the mismatch is
+        # obvious in the log instead of just "why did the email arrive at 6am".
+        if not force and not dry_run and now_dhaka.hour != 0:
+            self.stdout.write(self.style.WARNING(
+                f"Refusing to send: current Asia/Dhaka time is {now_dhaka.strftime('%H:%M')}, "
+                f"not within the 00:00–00:59 window this command expects. "
+                f"This usually means cron is scheduled using the server's OS "
+                f"clock (often UTC) rather than Asia/Dhaka time — see the "
+                f"module docstring for the correct crontab line, or the "
+                f"'timedatectl set-timezone Asia/Dhaka' fix. "
+                f"Re-run with --force to send anyway."
+            ))
+            return
+
         settings_obj = NotificationSettings.get_solo()
 
         periods = self._build_periods(today)

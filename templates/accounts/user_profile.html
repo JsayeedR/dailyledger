@@ -60,5 +60,25 @@
             </dl>
         </div>
     </div>
+
+    {% if request.user.role == 'SUPER_ADMIN' and request.user.id != target.id %}
+    <div class="px-8 py-6 border-t border-gray-100 bg-gray-50/60">
+        <h2 class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1">{% trans "Notification Preference" %} — {% trans "Super Admin Override" %}</h2>
+        <p class="text-xs text-gray-500 mb-4">{% trans "Sets this user's ACTIVE summary preference directly, without waiting for them to request it." %}</p>
+        <form method="post" action="{% url 'accounts:set_notification_preference_admin' user_id=target.id %}" class="space-y-3">
+            {% csrf_token %}
+            <div class="text-sm text-gray-700 space-y-1.5">
+                {{ notif_form.frequencies }}
+            </div>
+            <div class="flex gap-5 text-sm text-gray-700">
+                <label class="inline-flex items-center gap-2">{{ notif_form.email_enabled }} {% trans "Send via Email" %}</label>
+                <label class="inline-flex items-center gap-2">{{ notif_form.telegram_enabled }} {% trans "Send via Telegram" %}</label>
+            </div>
+            <button type="submit" class="text-sm font-medium px-4 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700">
+                {% trans "Set Notification Preference" %}
+            </button>
+        </form>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

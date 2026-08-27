@@ -7,6 +7,7 @@
     <h1 class="text-2xl font-semibold">{{ month_name }} {{ year }}</h1>
     <a href="?month={{ next_month }}&year={{ next_year }}" class="text-emerald-600 hover:underline">{% trans "Next &rarr;" %}</a>
 </div>
+<p class="text-gray-400 text-xs mb-3">{% trans "S: marks a Savings deposit (−) or withdrawal (+) that day — shown for reference, not counted in Income/Expense." %}</p>
 <div class="bg-white shadow rounded-lg p-4 overflow-x-auto">
 <table class="w-full text-center text-sm border-collapse">
     <thead>
@@ -24,6 +25,8 @@
                     <div class="font-medium">{{ cell.day }}</div>
                     {% if cell.expense > 0 %}<div class="text-red-600 text-xs">-{{ cell.expense }}</div>{% endif %}
                     {% if cell.income > 0 %}<div class="text-emerald-600 text-xs">+{{ cell.income }}</div>{% endif %}
+                    {% if cell.savings_deposit > 0 %}<div class="text-amber-600 text-xs">S:-{{ cell.savings_deposit }}</div>{% endif %}
+                    {% if cell.savings_withdrawal > 0 %}<div class="text-amber-600 text-xs">S:+{{ cell.savings_withdrawal }}</div>{% endif %}
                 </a>
             </td>
             {% else %}

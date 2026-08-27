@@ -2,7 +2,8 @@
 {% load i18n %}
 {% block title %}Transactions — DailyLedger{% endblock %}
 {% block content %}
-<h1 class="text-2xl font-semibold mb-6">{% trans "All Transactions" %}</h1>
+<h1 class="text-2xl font-semibold mb-2">{% trans "All Transactions" %}</h1>
+<p class="text-gray-500 text-xs mb-6">{% trans "Savings deposits/withdrawals (amber) are shown here for visibility only — they never count toward your Income or Expense totals." %}</p>
 <div class="bg-white shadow rounded-lg p-5">
     <table class="w-full text-sm">
         <thead class="text-left text-gray-500 border-b">
@@ -10,17 +11,20 @@
         </thead>
         <tbody>
             {% for t in transactions %}
-            <tr class="border-b last:border-0">
+            <tr class="border-b last:border-0 {% if t.kind == 'savings' %}bg-amber-50{% endif %}">
                 <td class="py-2">{{ t.date }}</td>
-                <td>{{ t.get_type_display }}</td>
-                <td>{{ t.category.name|default:t.source|default:"—" }}</td>
-                <td>{{ t.payment_method.name|default:"—" }}</td>
-                <td>{{ t.description|default:"—" }}</td>
-                <td class="text-right {% if t.type == 'EXPENSE' %}text-red-600{% else %}text-emerald-600{% endif %}">
-                    {{ currency }} {{ t.amount }}
+                <td>
+                    {{ t.type_display }}
+                    {% if t.kind == 'savings' %}<span class="text-[10px] uppercase tracking-wide text-amber-600 font-semibold ml-1">{% trans "Savings" %}</span>{% endif %}
+                </td>
+                <td>{{ t.category_display }}</td>
+                <td>{{ t.payment_method_display }}</td>
+                <td>{{ t.note|default:"—" }}</td>
+                <td class="text-right {% if t.kind == 'savings' %}text-amber-600{% elif t.is_outflow %}text-red-600{% else %}text-emerald-600{% endif %}">
+                    {% if t.is_outflow %}-{% else %}+{% endif %}{{ currency }} {{ t.amount }}
                 </td>
                 <td class="text-right">
-                    <a href="{% url 'ledger:edit_transaction' t.pk %}" class="text-blue-600 hover:underline text-xs">{% trans "Edit" %}</a>
+                    <a href="{% url t.edit_url_name t.pk %}" class="text-blue-600 hover:underline text-xs">{% trans "Edit" %}</a>
                 </td>
             </tr>
             {% empty %}

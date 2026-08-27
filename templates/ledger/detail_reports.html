@@ -49,6 +49,7 @@
     <button onclick="showDetailTab('expense')" id="tab-btn-expense" class="tab-btn px-4 py-2 text-sm font-medium rounded-full bg-emerald-600 text-white whitespace-nowrap">{% trans "Expense Categories" %}</button>
     <button onclick="showDetailTab('income')" id="tab-btn-income" class="tab-btn px-4 py-2 text-sm font-medium rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 whitespace-nowrap">{% trans "Income Sources" %}</button>
     <button onclick="showDetailTab('payment')" id="tab-btn-payment" class="tab-btn px-4 py-2 text-sm font-medium rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 whitespace-nowrap">{% trans "Payment Methods" %}</button>
+    <button onclick="showDetailTab('savings')" id="tab-btn-savings" class="tab-btn px-4 py-2 text-sm font-medium rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 whitespace-nowrap">{% trans "Savings" %}</button>
 </div>
 
 <div id="tab-expense" class="tab-panel">
@@ -141,6 +142,47 @@
     </div>
 </div>
 
+<div id="tab-savings" class="tab-panel hidden">
+    <div class="grid grid-cols-2 gap-4 mb-6">
+        <div class="bg-white shadow rounded-lg p-4">
+            <p class="text-xs text-gray-500">{% trans "Deposited This Period" %}</p>
+            <p class="text-lg font-semibold mt-1 text-amber-600">{{ currency }} {{ total_period_deposits|floatformat:2 }}</p>
+        </div>
+        <div class="bg-white shadow rounded-lg p-4">
+            <p class="text-xs text-gray-500">{% trans "Withdrawn This Period" %}</p>
+            <p class="text-lg font-semibold mt-1 text-emerald-600">{{ currency }} {{ total_period_withdrawals|floatformat:2 }}</p>
+        </div>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div class="bg-white shadow rounded-lg p-5">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="font-semibold">{% trans "Deposits vs Withdrawals by Category" %}</h2>
+                {% if savings_labels %}<button onclick="downloadChart('savingsDetailChart','savings-by-category.jpg')" class="no-print text-xs text-slate-500 hover:text-slate-800 underline">{% trans "Download JPG" %}</button>{% endif %}
+            </div>
+            {% if savings_labels %}<canvas id="savingsDetailChart" height="220"></canvas>{% else %}<p class="text-gray-400 text-sm">{% trans "No savings activity in this range." %}</p>{% endif %}
+        </div>
+        <div class="bg-white shadow rounded-lg p-5 overflow-x-auto">
+            <h2 class="font-semibold mb-3">{% trans "Breakdown" %}</h2>
+            <table class="w-full text-sm">
+                <thead class="text-left text-gray-500 border-b"><tr><th class="py-2">{% trans "Category" %}</th><th class="text-right">{% trans "Deposited" %}</th><th class="text-right">{% trans "Withdrawn" %}</th><th class="text-right">{% trans "Net" %}</th></tr></thead>
+                <tbody>
+                    {% for row in savings_breakdown %}
+                    <tr class="border-b last:border-0">
+                        <td class="py-2">{{ row.name }}</td>
+                        <td class="text-right text-amber-600">{{ currency }} {{ row.deposit }}</td>
+                        <td class="text-right text-emerald-600">{{ currency }} {{ row.withdrawal }}</td>
+                        <td class="text-right font-medium">{{ currency }} {{ row.net }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" class="py-4 text-center text-gray-400">{% trans "No savings activity in this range." %}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <p class="text-xs text-gray-400">{% trans "Savings deposits and withdrawals never affect Income or Expense totals — this tab is shown separately for reference." %}</p>
+</div>
+
 {{ expense_labels|json_script:"expense-labels" }}
 {{ expense_values|json_script:"expense-values" }}
 {{ income_labels|json_script:"income-labels" }}
@@ -148,6 +190,9 @@
 {{ payment_labels|json_script:"payment-labels" }}
 {{ payment_income_values|json_script:"payment-income-values" }}
 {{ payment_expense_values|json_script:"payment-expense-values" }}
+{{ savings_labels|json_script:"savings-labels" }}
+{{ savings_deposit_values|json_script:"savings-deposit-values" }}
+{{ savings_withdrawal_values|json_script:"savings-withdrawal-values" }}
 {{ currency|json_script:"currency-code" }}
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -203,6 +248,28 @@ if (paymentLabels.length > 0) {
             datasets: [
                 { label: 'Income', data: paymentIncomeValues, backgroundColor: '#10b981' },
                 { label: 'Expense', data: paymentExpenseValues, backgroundColor: '#ef4444' },
+            ]
+        },
+        options: {
+            plugins: {
+                legend: { position: 'bottom' },
+                datalabels: { color: '#111', anchor: 'end', align: 'top', font: { weight: 'bold', size: 10 }, formatter: fmtLabel }
+            }
+        }
+    });
+}
+
+const savingsLabels = JSON.parse(document.getElementById('savings-labels').textContent);
+const savingsDepositValues = JSON.parse(document.getElementById('savings-deposit-values').textContent);
+const savingsWithdrawalValues = JSON.parse(document.getElementById('savings-withdrawal-values').textContent);
+if (savingsLabels.length > 0) {
+    new Chart(document.getElementById('savingsDetailChart'), {
+        type: 'bar',
+        data: {
+            labels: savingsLabels,
+            datasets: [
+                { label: 'Deposited', data: savingsDepositValues, backgroundColor: '#f59e0b' },
+                { label: 'Withdrawn', data: savingsWithdrawalValues, backgroundColor: '#10b981' },
             ]
         },
         options: {

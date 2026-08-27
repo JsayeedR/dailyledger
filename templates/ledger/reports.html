@@ -26,18 +26,32 @@
     <button type="submit" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded">{% trans "Custom Range" %}</button>
 </form>
 
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+    <div class="bg-slate-800 text-white shadow rounded-lg p-5">
+        <p class="text-sm text-slate-300">{% trans "Cash in Hand (Current)" %}</p>
+        <p class="text-2xl font-semibold mt-1">{{ currency }} {{ cash_in_hand|floatformat:2 }}</p>
+        <p class="text-xs text-slate-400 mt-1">{% trans "As of today — not limited to the selected range." %}</p>
+    </div>
+    <div class="bg-white shadow rounded-lg p-5">
+        <p class="text-sm text-gray-500">{% trans "Savings Change This Period" %}</p>
+        <p class="text-2xl font-semibold mt-1 text-amber-600">{{ currency }} {{ period_net_savings|floatformat:2 }}</p>
+        <p class="text-xs text-gray-400 mt-1">{% trans "Deposited" %} {{ currency }} {{ period_deposits|floatformat:2 }} · {% trans "Withdrawn" %} {{ currency }} {{ period_withdrawals|floatformat:2 }} · <a href="{% url 'ledger:savings_list' %}" class="text-emerald-600 hover:underline">{% trans "View Savings" %} →</a></p>
+    </div>
+</div>
+
 <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
     <div class="bg-white shadow rounded-lg p-5">
         <p class="text-sm text-gray-500">{% trans "Total Income" %}</p>
-        <p class="text-2xl font-semibold text-emerald-600 mt-1">{{ currency }} {{ total_income }}</p>
+        <p class="text-2xl font-semibold text-emerald-600 mt-1">{{ currency }} {{ total_income|floatformat:2 }}</p>
     </div>
     <div class="bg-white shadow rounded-lg p-5">
         <p class="text-sm text-gray-500">{% trans "Total Expense" %}</p>
-        <p class="text-2xl font-semibold text-red-600 mt-1">{{ currency }} {{ total_expense }}</p>
+        <p class="text-2xl font-semibold text-red-600 mt-1">{{ currency }} {{ total_expense|floatformat:2 }}</p>
     </div>
     <div class="bg-white shadow rounded-lg p-5">
-        <p class="text-sm text-gray-500">{% trans "Savings" %}</p>
-        <p class="text-2xl font-semibold mt-1">{{ currency }} {{ savings }}</p>
+        <p class="text-sm text-gray-500">{% trans "Net Cash Flow" %}</p>
+        <p class="text-2xl font-semibold mt-1">{{ currency }} {{ net_cash_flow|floatformat:2 }}</p>
+        <p class="text-xs text-gray-400 mt-1">{% trans "Income − Expense (excludes Savings)" %}</p>
     </div>
     <div class="bg-white shadow rounded-lg p-5">
         <p class="text-sm text-gray-500">{% trans "Transactions" %}</p>
@@ -68,8 +82,8 @@
 
 <div class="bg-white shadow rounded-lg p-5">
     <div class="flex justify-between items-center mb-3">
-        <h2 class="font-semibold">{% trans "Income vs Expense vs Savings" %}</h2>
-        <button onclick="downloadChart('savingsChart','income-expense-savings.jpg')" class="no-print text-xs text-slate-500 hover:text-slate-800 underline">{% trans "Download JPG" %}</button>
+        <h2 class="font-semibold">{% trans "Income vs Expense vs Net Cash Flow" %}</h2>
+        <button onclick="downloadChart('savingsChart','income-expense-netflow.jpg')" class="no-print text-xs text-slate-500 hover:text-slate-800 underline">{% trans "Download JPG" %}</button>
     </div>
     <canvas id="savingsChart" height="180"></canvas>
 </div>
@@ -78,7 +92,7 @@
 {{ category_values|json_script:"category-values" }}
 {{ total_income_float|json_script:"total-income" }}
 {{ total_expense_float|json_script:"total-expense" }}
-{{ savings_float|json_script:"savings-value" }}
+{{ net_cash_flow_float|json_script:"net-cash-flow-value" }}
 {{ currency|json_script:"currency-code" }}
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -90,7 +104,7 @@ const categoryLabels = JSON.parse(document.getElementById('category-labels').tex
 const categoryValues = JSON.parse(document.getElementById('category-values').textContent);
 const totalIncome = JSON.parse(document.getElementById('total-income').textContent);
 const totalExpense = JSON.parse(document.getElementById('total-expense').textContent);
-const savingsValue = JSON.parse(document.getElementById('savings-value').textContent);
+const savingsValue = JSON.parse(document.getElementById('net-cash-flow-value').textContent);
 const currencyCode = JSON.parse(document.getElementById('currency-code').textContent);
 
 function fmtLabel(value) {
@@ -127,7 +141,7 @@ if (categoryLabels.length > 0) {
 new Chart(document.getElementById('savingsChart'), {
     type: 'bar',
     data: {
-        labels: ['Income', 'Expense', 'Savings'],
+        labels: ['Income', 'Expense', 'Net Cash Flow'],
         datasets: [{ data: [totalIncome, totalExpense, savingsValue], backgroundColor: ['#10b981', '#ef4444', '#3b82f6'] }]
     },
     options: {

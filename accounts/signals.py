@@ -13,6 +13,9 @@ DEFAULT_INCOME_CATEGORIES = [
 DEFAULT_PAYMENT_METHODS = [
     'Cash', 'Debit Card', 'Bank Account', 'Cheque', 'Credit Card', 'MFS', 'Others',
 ]
+DEFAULT_SAVINGS_CATEGORIES = [
+    'DPS', 'FDR', 'Bank', 'Loan to Others', 'Land', 'Sanchay Patro',
+]
 
 
 @receiver(post_save, sender=CustomUser)
