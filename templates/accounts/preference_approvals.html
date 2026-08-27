@@ -54,7 +54,11 @@
                 {% if p.review_status == 'APPROVED' %}<span class="text-emerald-600">{% trans "Approved" %}</span>
                 {% else %}<span class="text-red-600">{% trans "Rejected" %}</span>{% endif %}
             </td>
-            <td>{{ p.requested_frequency_labels|join:", "|default:"—" }}</td>
+            <td>
+                {% if p.requested_frequency_labels %}{{ p.requested_frequency_labels|join:", " }}
+                {% elif p.active_frequency_labels %}{{ p.active_frequency_labels|join:", " }} <span class="text-xs text-gray-400">({% trans "set by Super Admin" %})</span>
+                {% else %}—{% endif %}
+            </td>
             <td>{{ p.reviewed_by.email|default:"—" }}</td>
             <td>{{ p.reviewed_at|date:"M d, Y H:i" }}</td>
         </tr>
