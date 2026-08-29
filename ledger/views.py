@@ -559,26 +559,6 @@ def detail_reports_view(request):
         - (LoanRepayment.objects.filter(tenant=tenant).aggregate(total=Sum('amount'))['total'] or Decimal('0'))
     )
 
-    loans_taken_qs = Loan.objects.filter(tenant=tenant, date__gte=start_date, date__lte=end_date)
-    loan_repayments_qs = LoanRepayment.objects.filter(tenant=tenant, date__gte=start_date, date__lte=end_date)
-    loan_map = {}
-    for row in loans_taken_qs.values('source').annotate(total=Sum('amount'), count=Count('id')):
-        entry = loan_map.setdefault(row['source'], {'taken': Decimal('0'), 'repaid': Decimal('0'), 'count': 0})
-        entry['taken'] = row['total']
-        entry['count'] += row['count']
-    for row in loan_repayments_qs.values('loan__source').annotate(total=Sum('amount'), count=Count('id')):
-        entry = loan_map.setdefault(row['loan__source'], {'taken': Decimal('0'), 'repaid': Decimal('0'), 'count': 0})
-        entry['repaid'] = row['total']
-        entry['count'] += row['count']
-    loan_names = sorted(loan_map.keys())
-    loan_breakdown = [{'name': n, 'net': loan_map[n]['taken'] - loan_map[n]['repaid'], **loan_map[n]} for n in loan_names]
-    total_period_loans_taken = sum((row['taken'] for row in loan_breakdown), Decimal('0'))
-    total_period_loans_repaid = sum((row['repaid'] for row in loan_breakdown), Decimal('0'))
-    current_loans_outstanding = (
-        (Loan.objects.filter(tenant=tenant).aggregate(total=Sum('amount'))['total'] or Decimal('0'))
-        - (LoanRepayment.objects.filter(tenant=tenant).aggregate(total=Sum('amount'))['total'] or Decimal('0'))
-    )
-
     top_category = expense_categories[0]['category__name'] if expense_categories else None
     top_payment = max(payment_map, key=lambda n: payment_map[n]['income'] + payment_map[n]['expense']) if payment_map else None
 
