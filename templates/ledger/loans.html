@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}Loans — DailyLedger{% endblock %}
+{% block content %}
+<div class="flex justify-between items-center mb-6 flex-wrap gap-3">
+    <h1 class="text-2xl font-semibold">{% trans "Loans / Borrowing" %}</h1>
+    <div class="flex gap-2">
+        <a href="{% url 'ledger:add_loan_repayment' %}" class="bg-white border border-emerald-600 text-emerald-700 hover:bg-emerald-50 px-4 py-2 rounded font-medium text-sm">
+            {% trans "Pay Back a Loan" %}
+        </a>
+        <a href="{% url 'ledger:add_loan' %}" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded font-medium text-sm">
+            + {% trans "Take a Loan" %}
+        </a>
+    </div>
+</div>
+
+<div class="bg-slate-800 text-white rounded-lg p-5 mb-6">
+    <p class="text-sm text-slate-300 font-medium">{% trans "Total Outstanding (what you still owe)" %}</p>
+    <p class="text-3xl font-bold mt-1">{{ currency }} {{ total_outstanding|floatformat:2 }}</p>
+    <p class="text-xs text-slate-400 mt-1">{% trans "This amount is added to your cash-in-hand on the Dashboard — it's a liability, not income." %}</p>
+</div>
+
+<h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">{% trans "Loans" %}</h2>
+<div class="bg-white shadow rounded-lg overflow-hidden mb-8">
+    <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+        <thead class="text-left text-gray-500 border-b">
+            <tr>
+                <th class="py-2 px-4">{% trans "Source" %}</th>
+                <th>{% trans "Date Taken" %}</th>
+                <th class="text-right">{% trans "Amount" %}</th>
+                <th class="text-right">{% trans "Repaid" %}</th>
+                <th class="text-right">{% trans "Outstanding" %}</th>
+                <th>{% trans "Status" %}</th>
+                <th class="text-right px-4">{% trans "Actions" %}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in loan_rows %}
+            <tr class="border-b last:border-0">
+                <td class="py-2 px-4 font-medium">{{ row.loan.source }}</td>
+                <td>{{ row.loan.date }}</td>
+                <td class="text-right">{{ currency }} {{ row.loan.amount|floatformat:2 }}</td>
+                <td class="text-right text-emerald-600">{{ currency }} {{ row.loan.repaid_amount|floatformat:2 }}</td>
+                <td class="text-right font-semibold {% if row.is_settled %}text-gray-400{% else %}text-amber-600{% endif %}">
+                    {{ currency }} {{ row.outstanding|floatformat:2 }}
+                </td>
+                <td>
+                    {% if row.is_settled %}
+                    <span class="inline-block px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-500">{% trans "Settled" %}</span>
+                    {% else %}
+                    <span class="inline-block px-2 py-0.5 rounded text-xs bg-amber-100 text-amber-700">{% trans "Active" %}</span>
+                    {% endif %}
+                </td>
+                <td class="text-right px-4 whitespace-nowrap">
+                    <a href="{% url 'ledger:delete_loan' row.loan.pk %}" class="text-red-600 hover:underline text-xs">{% trans "Delete" %}</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7" class="py-4 text-center text-gray-400">{% trans "No loans yet." %}</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    </div>
+</div>
+
+<div class="bg-white shadow rounded-lg p-5">
+    <h2 class="font-semibold text-lg mb-3">{% trans "All Repayments" %}</h2>
+    <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+        <thead class="text-left text-gray-500 border-b">
+            <tr>
+                <th class="py-2">{% trans "Date" %}</th>
+                <th>{% trans "Loan (Source)" %}</th>
+                <th>{% trans "Payment Method" %}</th>
+                <th class="text-right">{% trans "Amount" %}</th>
+                <th class="text-right">{% trans "Actions" %}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in repayments %}
+            <tr class="border-b last:border-0">
+                <td class="py-2">{{ r.date }}</td>
+                <td>{{ r.loan.source }}</td>
+                <td>{{ r.payment_method.name|default:"—" }}</td>
+                <td class="text-right text-emerald-600">{{ currency }} {{ r.amount|floatformat:2 }}</td>
+                <td class="text-right whitespace-nowrap">
+                    <a href="{% url 'ledger:delete_loan_repayment' r.pk %}" class="text-red-600 hover:underline text-xs">{% trans "Delete" %}</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="py-4 text-center text-gray-400">{% trans "No repayments yet." %}</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    </div>
+</div>
+{% endblock %}

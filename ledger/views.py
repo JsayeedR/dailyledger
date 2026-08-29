@@ -7,8 +7,8 @@ from django.contrib import messages
 from django.utils.translation import gettext as _
 from django.utils import timezone
 from django.db.models import Sum, Q, Count
-from .models import Transaction, TransactionType, Budget, Category, PaymentMethod, SavingsTransaction, SavingsCategory, SavingsEntryType
-from .forms import TransactionForm, BudgetForm, SavingsTransactionForm
+from .models import Transaction, TransactionType, Budget, Category, PaymentMethod, SavingsTransaction, SavingsCategory, SavingsEntryType, Loan, LoanRepayment
+from .forms import TransactionForm, BudgetForm, SavingsTransactionForm, LoanForm, LoanRepaymentForm
 from accounts import audit
 
 
@@ -79,10 +79,19 @@ def dashboard(request):
     all_withdrawals = SavingsTransaction.objects.filter(tenant=tenant, entry_type=SavingsEntryType.WITHDRAWAL).aggregate(total=Sum('amount'))['total'] or Decimal('0')
     net_savings = all_deposits - all_withdrawals
 
+    all_loans_taken = Loan.objects.filter(tenant=tenant).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+    all_loans_repaid = LoanRepayment.objects.filter(tenant=tenant).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+    # Outstanding loan balance — a liability. Taking a loan adds cash to this
+    # pool (without being Income); repaying it removes cash (without being
+    # an Expense) — the mirror image of how Savings deposits/withdrawals work.
+    total_loans_outstanding = all_loans_taken - all_loans_repaid
+
     # Total Balance = liquid cash-in-hand only. A savings deposit moves cash
     # out of this pool (without being an Expense); a withdrawal moves it back
-    # in (without being Income). Income/Expense totals never change.
-    total_balance = tenant.opening_balance + all_income - all_expense - net_savings
+    # in (without being Income). A loan taken adds cash to this pool (without
+    # being Income); repaying it removes cash (without being an Expense).
+    # Income/Expense totals never change from either of these.
+    total_balance = tenant.opening_balance + all_income - all_expense - net_savings + total_loans_outstanding
 
     context = {
         'month_income': month_income,
@@ -101,6 +110,7 @@ def dashboard(request):
         'last_month_expense': last_month_expense,
         'total_balance': total_balance,
         'total_savings': net_savings,
+        'total_loans_outstanding': total_loans_outstanding,
         'recent_transactions': Transaction.objects.filter(tenant=tenant).select_related('category', 'payment_method')[:8],
         'currency': tenant.currency,
         'today_count': Transaction.objects.filter(tenant=tenant, date=today).count(),
@@ -439,7 +449,9 @@ def reports_view(request):
     all_expense = Transaction.objects.filter(tenant=tenant, type=TransactionType.EXPENSE).aggregate(total=Sum('amount'))['total'] or Decimal('0')
     all_deposits = SavingsTransaction.objects.filter(tenant=tenant, entry_type=SavingsEntryType.DEPOSIT).aggregate(total=Sum('amount'))['total'] or Decimal('0')
     all_withdrawals = SavingsTransaction.objects.filter(tenant=tenant, entry_type=SavingsEntryType.WITHDRAWAL).aggregate(total=Sum('amount'))['total'] or Decimal('0')
-    cash_in_hand = tenant.opening_balance + all_income - all_expense - (all_deposits - all_withdrawals)
+    all_loans_taken = Loan.objects.filter(tenant=tenant).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+    all_loans_repaid = LoanRepayment.objects.filter(tenant=tenant).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+    cash_in_hand = tenant.opening_balance + all_income - all_expense - (all_deposits - all_withdrawals) + (all_loans_taken - all_loans_repaid)
 
     expense_by_category = (
         txns.filter(type=TransactionType.EXPENSE, category__isnull=False)
@@ -666,6 +678,136 @@ def delete_savings(request, pk):
         messages.success(request, _('Savings entry deleted.'))
         return redirect('ledger:savings_list')
     return render(request, 'ledger/confirm_delete_savings.html', {'entry': entry})
+
+
+@login_required
+def loan_list(request):
+    tenant = request.user.tenant
+    loans = Loan.objects.filter(tenant=tenant).select_related('payment_method')
+    loan_rows = [{'loan': loan, 'outstanding': loan.outstanding(), 'is_settled': loan.is_settled()} for loan in loans]
+    total_outstanding = sum((row['outstanding'] for row in loan_rows), Decimal('0'))
+
+    repayments = LoanRepayment.objects.filter(tenant=tenant).select_related('loan', 'payment_method')
+
+    return render(request, 'ledger/loans.html', {
+        'loan_rows': loan_rows,
+        'total_outstanding': total_outstanding,
+        'repayments': repayments,
+        'currency': tenant.currency,
+    })
+
+
+@login_required
+def add_loan(request):
+    tenant = request.user.tenant
+    if request.method == 'POST':
+        form = LoanForm(request.POST, tenant=tenant)
+        if form.is_valid():
+            loan = form.save(commit=False)
+            loan.tenant = tenant
+            loan.save()
+            audit.log(actor=request.user, action='LOAN_CREATE', target_type='Loan', target_id=loan.id, request=request)
+            messages.success(request, _('Loan added — cash-in-hand updated, Income is unaffected.'))
+            return redirect('ledger:loan_list')
+    else:
+        form = LoanForm(tenant=tenant, initial={'date': timezone.localdate()})
+    return render(request, 'ledger/add_loan.html', {'form': form})
+
+
+@login_required
+def delete_loan(request, pk):
+    tenant = request.user.tenant
+    loan = get_object_or_404(Loan, pk=pk, tenant=tenant)
+    if request.method == 'POST':
+        loan_id = loan.id
+        loan.delete()  # cascades: its repayments are deleted too
+        audit.log(actor=request.user, action='LOAN_DELETE', target_type='Loan', target_id=loan_id, request=request)
+        messages.success(request, _('Loan deleted.'))
+        return redirect('ledger:loan_list')
+    return render(request, 'ledger/confirm_delete_loan.html', {'loan': loan, 'repayment_count': loan.repayments.count()})
+
+
+@login_required
+def add_loan_repayment(request):
+    tenant = request.user.tenant
+    has_outstanding = any(loan.outstanding() > 0 for loan in Loan.objects.filter(tenant=tenant))
+    if not has_outstanding and request.method != 'POST':
+        messages.info(request, _('No loans currently have an outstanding balance.'))
+        return redirect('ledger:loan_list')
+
+    if request.method == 'POST':
+        form = LoanRepaymentForm(request.POST, tenant=tenant)
+        if form.is_valid():
+            repayment = form.save(commit=False)
+            repayment.tenant = tenant
+            repayment.save()
+            audit.log(actor=request.user, action='LOAN_REPAY', target_type='LoanRepayment', target_id=repayment.id, request=request)
+            messages.success(request, _('Repayment recorded — cash-in-hand updated, Expense is unaffected.'))
+            return redirect('ledger:loan_list')
+    else:
+        form = LoanRepaymentForm(tenant=tenant, initial={'date': timezone.localdate()})
+    return render(request, 'ledger/add_loan_repayment.html', {'form': form})
+
+
+@login_required
+def delete_loan_repayment(request, pk):
+    tenant = request.user.tenant
+    repayment = get_object_or_404(LoanRepayment, pk=pk, tenant=tenant)
+    if request.method == 'POST':
+        repayment_id = repayment.id
+        repayment.delete()
+        audit.log(actor=request.user, action='LOAN_REPAY_DELETE', target_type='LoanRepayment', target_id=repayment_id, request=request)
+        messages.success(request, _('Repayment deleted.'))
+        return redirect('ledger:loan_list')
+    return render(request, 'ledger/confirm_delete_loan_repayment.html', {'repayment': repayment})
+
+
+@login_required
+def add_category(request):
+    tenant = request.user.tenant
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        cat_type = request.POST.get('type')
+        if name and cat_type in (TransactionType.EXPENSE, TransactionType.INCOME):
+            Category.objects.get_or_create(tenant=tenant, type=cat_type, name=name, parent=None)
+            messages.success(request, _('Category "%(name)s" added.') % {'name': name})
+        else:
+            messages.error(request, _('Please provide a valid name.'))
+    return redirect('ledger:manage_settings')
+
+
+@login_required
+def toggle_category(request, pk):
+    tenant = request.user.tenant
+    cat = get_object_or_404(Category, pk=pk, tenant=tenant)
+    if request.method == 'POST':
+        cat.is_active = not cat.is_active
+        cat.save()
+    return redirect('ledger:manage_settings')
+
+
+@login_required
+def add_payment_method(request):
+    tenant = request.user.tenant
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        if name:
+            PaymentMethod.objects.get_or_create(tenant=tenant, name=name)
+            messages.success(request, _('Payment method "%(name)s" added.') % {'name': name})
+        else:
+            messages.error(request, _('Please provide a name.'))
+    return redirect('ledger:manage_settings')
+
+
+@login_required
+def toggle_payment_method(request, pk):
+    tenant = request.user.tenant
+    pm = get_object_or_404(PaymentMethod, pk=pk, tenant=tenant)
+    if request.method == 'POST':
+        pm.is_active = not pm.is_active
+        pm.save()
+    return redirect('ledger:manage_settings')
+
 
 
 @login_required

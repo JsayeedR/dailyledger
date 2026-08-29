@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}Delete Loan — DailyLedger{% endblock %}
+{% block container_width %}max-w-3xl{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-semibold mb-6">{% trans "Delete Loan?" %}</h1>
+<div class="bg-white shadow rounded-lg p-6 max-w-lg mx-auto">
+    <p class="mb-4">
+        {% trans "This will permanently delete the loan of" %}
+        <strong>{{ loan.amount }}</strong> {% trans "from" %} <strong>{{ loan.source }}</strong>
+        {% trans "taken on" %} <strong>{{ loan.date }}</strong>.
+    </p>
+    {% if repayment_count > 0 %}
+    <p class="mb-4 bg-amber-50 border border-amber-200 text-amber-700 text-sm rounded px-4 py-3">
+        {% blocktrans count counter=repayment_count %}
+        This loan also has {{ counter }} repayment recorded against it — deleting the loan will delete that repayment too.
+        {% plural %}
+        This loan also has {{ counter }} repayments recorded against it — deleting the loan will delete all of them too.
+        {% endblocktrans %}
+    </p>
+    {% endif %}
+    <p class="mb-4 text-sm text-gray-500">{% trans "This cannot be undone." %}</p>
+    <form method="post">
+        {% csrf_token %}
+        <div class="flex gap-3">
+            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded font-medium">
+                {% trans "Yes, Delete" %}
+            </button>
+            <a href="{% url 'ledger:loan_list' %}" class="bg-gray-100 hover:bg-gray-200 px-5 py-2 rounded font-medium">
+                {% trans "Cancel" %}
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

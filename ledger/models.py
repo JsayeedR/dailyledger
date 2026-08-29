@@ -198,3 +198,72 @@ class SavingsTransaction(models.Model):
 
     def __str__(self):
         return f"{self.entry_type} — {self.amount} on {self.date} ({self.category.name})"
+
+
+class Loan(models.Model):
+    """
+    Money borrowed FROM a bank or a person — a liability. Deliberately a
+    separate model from SavingsCategory/SavingsTransaction (which model
+    money saved or lent OUT — an asset, the opposite direction). Taking a
+    loan increases cash-in-hand without being Income; repaying it decreases
+    cash-in-hand without being an Expense. No interest is tracked — this
+    is principal-only, by design.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name='loans')
+    source = models.CharField(max_length=150, help_text='Who the loan is from — a bank or a person')
+    amount = models.DecimalField(max_digits=14, decimal_places=2)
+    date = models.DateField()
+    payment_method = models.ForeignKey(PaymentMethod, null=True, blank=True, on_delete=models.SET_NULL, related_name='loans')
+    note = models.CharField(max_length=500, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-date', '-created_at']
+        indexes = [models.Index(fields=['tenant', 'date'])]
+
+    def __str__(self):
+        return f"Loan from {self.source} — {self.amount} on {self.date}"
+
+    def repaid_amount(self):
+        from django.db.models import Sum
+        total = self.repayments.aggregate(total=Sum('amount'))['total']
+        return total or 0
+
+    def outstanding(self):
+        return self.amount - self.repaid_amount()
+
+    def is_settled(self):
+        return self.outstanding() <= 0
+
+
+class LoanRepayment(models.Model):
+    """
+    A single repayment against one specific Loan. Always tied to exactly
+    one Loan — never a generic pool. Never affects Expense totals: it's a
+    liability payoff, not a cost (no interest is tracked here).
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name='loan_repayments')
+    loan = models.ForeignKey(Loan, on_delete=models.CASCADE, related_name='repayments')
+    payment_method = models.ForeignKey(PaymentMethod, null=True, blank=True, on_delete=models.SET_NULL, related_name='loan_repayments')
+
+    date = models.DateField()
+    amount = models.DecimalField(max_digits=14, decimal_places=2)
+    note = models.CharField(max_length=500, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-date', '-created_at']
+        indexes = [
+            models.Index(fields=['tenant', 'date']),
+            models.Index(fields=['tenant', 'loan']),
+        ]
+
+    def __str__(self):
+        return f"Repayment — {self.amount} on {self.date} (loan: {self.loan.source})"
+

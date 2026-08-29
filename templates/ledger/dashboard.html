@@ -33,6 +33,11 @@
         <a href="{% url 'ledger:savings_list' %}" class="text-xs text-emerald-600 hover:underline">{% trans "View breakdown" %} →</a>
     </div>
     <div class="bg-white shadow rounded-lg p-4">
+        <p class="text-xs text-gray-500">{% trans "Outstanding Loans" %}</p>
+        <p class="text-lg font-semibold mt-1 text-red-600">{{ currency }} {{ total_loans_outstanding|floatformat:2 }}</p>
+        <a href="{% url 'ledger:loan_list' %}" class="text-xs text-emerald-600 hover:underline">{% trans "View breakdown" %} →</a>
+    </div>
+    <div class="bg-white shadow rounded-lg p-4">
         <p class="text-xs text-gray-500">{% trans "Today's Expense" %}</p>
         <p class="text-lg font-semibold mt-1 text-red-600">{{ currency }} {{ today_expense }}</p>
     </div>

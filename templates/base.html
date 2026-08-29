@@ -38,7 +38,15 @@
                 <a href="{% url 'ledger:add_transaction' %}" class="bg-emerald-600 hover:bg-emerald-700 px-3 py-1.5 rounded font-medium">+ {% trans "Add" %}</a>
                 <a href="{% url 'ledger:dashboard' %}" class="hover:underline">{% trans "Dashboard" %}</a>
                 <a href="{% url 'ledger:transaction_list' %}" class="hover:underline">{% trans "All Transactions" %}</a>
-                <a href="{% url 'ledger:savings_list' %}" class="hover:underline">{% trans "Savings" %}</a>
+
+                <details class="relative">
+                    <summary class="cursor-pointer hover:underline select-none">{% trans "Savings" %} ▾</summary>
+                    <div class="absolute right-0 mt-2 w-48 bg-white text-slate-800 rounded shadow-lg py-2 z-20">
+                        <a href="{% url 'ledger:savings_list' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">{% trans "Savings" %}</a>
+                        <a href="{% url 'ledger:loan_list' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">{% trans "Loans / Borrowing" %}</a>
+                    </div>
+                </details>
+
                 <a href="{% url 'ledger:reports' %}" class="hover:underline">{% trans "Reports" %}</a>
 
                 <details class="relative">
@@ -95,7 +103,15 @@
             <a href="{% url 'ledger:add_transaction' %}" class="bg-emerald-600 hover:bg-emerald-700 px-3 py-2 rounded font-medium text-center">+ {% trans "Add Transaction" %}</a>
             <a href="{% url 'ledger:dashboard' %}" class="hover:underline">{% trans "Dashboard" %}</a>
             <a href="{% url 'ledger:transaction_list' %}" class="hover:underline">{% trans "All Transactions" %}</a>
-            <a href="{% url 'ledger:savings_list' %}" class="hover:underline">{% trans "Savings" %}</a>
+
+            <details>
+                <summary class="cursor-pointer hover:underline">{% trans "Savings" %}</summary>
+                <div class="pl-4 flex flex-col gap-2 mt-2">
+                    <a href="{% url 'ledger:savings_list' %}" class="hover:underline">{% trans "Savings" %}</a>
+                    <a href="{% url 'ledger:loan_list' %}" class="hover:underline">{% trans "Loans / Borrowing" %}</a>
+                </div>
+            </details>
+
             <a href="{% url 'ledger:reports' %}" class="hover:underline">{% trans "Reports" %}</a>
 
             <details>
