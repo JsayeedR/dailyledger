@@ -50,6 +50,7 @@
     <button onclick="showDetailTab('income')" id="tab-btn-income" class="tab-btn px-4 py-2 text-sm font-medium rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 whitespace-nowrap">{% trans "Income Sources" %}</button>
     <button onclick="showDetailTab('payment')" id="tab-btn-payment" class="tab-btn px-4 py-2 text-sm font-medium rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 whitespace-nowrap">{% trans "Payment Methods" %}</button>
     <button onclick="showDetailTab('savings')" id="tab-btn-savings" class="tab-btn px-4 py-2 text-sm font-medium rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 whitespace-nowrap">{% trans "Savings" %}</button>
+    <button onclick="showDetailTab('loans')" id="tab-btn-loans" class="tab-btn px-4 py-2 text-sm font-medium rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 whitespace-nowrap">{% trans "Loans / Borrowing" %}</button>
 </div>
 
 <div id="tab-expense" class="tab-panel">
@@ -183,6 +184,51 @@
     <p class="text-xs text-gray-400">{% trans "Savings deposits and withdrawals never affect Income or Expense totals — this tab is shown separately for reference." %}</p>
 </div>
 
+<div id="tab-loans" class="tab-panel hidden">
+    <div class="grid grid-cols-3 gap-4 mb-6">
+        <div class="bg-white shadow rounded-lg p-4">
+            <p class="text-xs text-gray-500">{% trans "Taken This Period" %}</p>
+            <p class="text-lg font-semibold mt-1 text-amber-600">{{ currency }} {{ total_period_loans_taken|floatformat:2 }}</p>
+        </div>
+        <div class="bg-white shadow rounded-lg p-4">
+            <p class="text-xs text-gray-500">{% trans "Repaid This Period" %}</p>
+            <p class="text-lg font-semibold mt-1 text-emerald-600">{{ currency }} {{ total_period_loans_repaid|floatformat:2 }}</p>
+        </div>
+        <div class="bg-white shadow rounded-lg p-4">
+            <p class="text-xs text-gray-500">{% trans "Currently Outstanding (all-time)" %}</p>
+            <p class="text-lg font-semibold mt-1 text-red-600">{{ currency }} {{ current_loans_outstanding|floatformat:2 }}</p>
+        </div>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div class="bg-white shadow rounded-lg p-5">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="font-semibold">{% trans "Taken vs Repaid by Source" %}</h2>
+                {% if loan_labels %}<button onclick="downloadChart('loansDetailChart','loans-by-source.jpg')" class="no-print text-xs text-slate-500 hover:text-slate-800 underline">{% trans "Download JPG" %}</button>{% endif %}
+            </div>
+            {% if loan_labels %}<canvas id="loansDetailChart" height="220"></canvas>{% else %}<p class="text-gray-400 text-sm">{% trans "No loan activity in this range." %}</p>{% endif %}
+        </div>
+        <div class="bg-white shadow rounded-lg p-5 overflow-x-auto">
+            <h2 class="font-semibold mb-3">{% trans "Breakdown" %}</h2>
+            <table class="w-full text-sm">
+                <thead class="text-left text-gray-500 border-b"><tr><th class="py-2">{% trans "Source" %}</th><th class="text-right">{% trans "Taken" %}</th><th class="text-right">{% trans "Repaid" %}</th><th class="text-right">{% trans "Net (added to cash)" %}</th></tr></thead>
+                <tbody>
+                    {% for row in loan_breakdown %}
+                    <tr class="border-b last:border-0">
+                        <td class="py-2">{{ row.name }}</td>
+                        <td class="text-right text-amber-600">{{ currency }} {{ row.taken }}</td>
+                        <td class="text-right text-emerald-600">{{ currency }} {{ row.repaid }}</td>
+                        <td class="text-right font-medium">{{ currency }} {{ row.net }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" class="py-4 text-center text-gray-400">{% trans "No loan activity in this range." %}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <p class="text-xs text-gray-400">{% trans "Loans taken and repayments never affect Income or Expense totals — this tab is shown separately for reference. No interest is tracked." %}</p>
+</div>
+
 {{ expense_labels|json_script:"expense-labels" }}
 {{ expense_values|json_script:"expense-values" }}
 {{ income_labels|json_script:"income-labels" }}
@@ -193,6 +239,9 @@
 {{ savings_labels|json_script:"savings-labels" }}
 {{ savings_deposit_values|json_script:"savings-deposit-values" }}
 {{ savings_withdrawal_values|json_script:"savings-withdrawal-values" }}
+{{ loan_labels|json_script:"loan-labels" }}
+{{ loan_taken_values|json_script:"loan-taken-values" }}
+{{ loan_repaid_values|json_script:"loan-repaid-values" }}
 {{ currency|json_script:"currency-code" }}
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -270,6 +319,28 @@ if (savingsLabels.length > 0) {
             datasets: [
                 { label: 'Deposited', data: savingsDepositValues, backgroundColor: '#f59e0b' },
                 { label: 'Withdrawn', data: savingsWithdrawalValues, backgroundColor: '#10b981' },
+            ]
+        },
+        options: {
+            plugins: {
+                legend: { position: 'bottom' },
+                datalabels: { color: '#111', anchor: 'end', align: 'top', font: { weight: 'bold', size: 10 }, formatter: fmtLabel }
+            }
+        }
+    });
+}
+
+const loanLabels = JSON.parse(document.getElementById('loan-labels').textContent);
+const loanTakenValues = JSON.parse(document.getElementById('loan-taken-values').textContent);
+const loanRepaidValues = JSON.parse(document.getElementById('loan-repaid-values').textContent);
+if (loanLabels.length > 0) {
+    new Chart(document.getElementById('loansDetailChart'), {
+        type: 'bar',
+        data: {
+            labels: loanLabels,
+            datasets: [
+                { label: 'Taken', data: loanTakenValues, backgroundColor: '#f59e0b' },
+                { label: 'Repaid', data: loanRepaidValues, backgroundColor: '#10b981' },
             ]
         },
         options: {
