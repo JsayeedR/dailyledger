@@ -29,6 +29,12 @@
                 </svg>
                 DailyLedger
             </a>
+
+            <div class="flex flex-col items-center leading-tight select-none" style="font-family: 'Courier New', monospace;">
+                <span id="navClockTime" class="text-xs sm:text-base font-bold tracking-wider" style="color:#0ff; text-shadow: 0 0 5px #0ff, 0 0 10px #0ff, 0 0 18px #0ff;">00:00:00</span>
+                <span id="navClockDate" class="text-[9px] sm:text-xs font-medium tracking-wide" style="color:#0ff; text-shadow: 0 0 4px #0ff, 0 0 8px #0ff;">01-Jan-2026</span>
+            </div>
+
             <button onclick="document.getElementById('mobileMenu').classList.toggle('hidden')" class="md:hidden text-white">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
@@ -37,42 +43,48 @@
             <div class="hidden md:flex gap-4 items-center text-sm">
                 <a href="{% url 'ledger:add_transaction' %}" class="bg-emerald-600 hover:bg-emerald-700 px-3 py-1.5 rounded font-medium">+ {% trans "Add" %}</a>
                 <a href="{% url 'ledger:dashboard' %}" class="hover:underline">{% trans "Dashboard" %}</a>
-                <a href="{% url 'ledger:transaction_list' %}" class="hover:underline">{% trans "All Transactions" %}</a>
 
                 <details class="relative">
-                    <summary class="cursor-pointer hover:underline select-none">{% trans "Savings" %} ▾</summary>
-                    <div class="absolute right-0 mt-2 w-48 bg-white text-slate-800 rounded shadow-lg py-2 z-20">
-                        <a href="{% url 'ledger:savings_list' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">{% trans "Savings" %}</a>
-                        <a href="{% url 'ledger:loan_list' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">{% trans "Loans / Borrowing" %}</a>
+                    <summary class="cursor-pointer hover:underline select-none">{% trans "Savings/Borrow" %} ▾</summary>
+                    <div class="absolute right-0 mt-2 w-56 bg-white text-slate-800 rounded shadow-lg py-2 z-20">
+                        <a href="{% url 'ledger:savings_list' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">{% trans "Savings/Withdrawal" %}</a>
+                        <a href="{% url 'ledger:loan_list' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">{% trans "Loans/Borrowing/Repayment" %}</a>
                     </div>
                 </details>
 
-                <a href="{% url 'ledger:reports' %}" class="hover:underline">{% trans "Reports" %}</a>
+                <a href="{% url 'ledger:transaction_list' %}" class="hover:underline">{% trans "All Transactions" %}</a>
 
                 <details class="relative">
-                    <summary class="cursor-pointer hover:underline select-none">{% trans "Others" %} ▾</summary>
+                    <summary class="cursor-pointer hover:underline select-none">{% trans "Reports" %} ▾</summary>
                     <div class="absolute right-0 mt-2 w-48 bg-white text-slate-800 rounded shadow-lg py-2 z-20">
+                        <a href="{% url 'ledger:reports' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">{% trans "Short Report" %}</a>
+                        <a href="{% url 'ledger:detail_reports' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">{% trans "Detail Reports" %}</a>
                         <a href="{% url 'ledger:calendar' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">{% trans "Calendar" %}</a>
                         <a href="{% url 'ledger:spreadsheet' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">{% trans "Spreadsheet" %}</a>
-                        <a href="{% url 'ledger:budget_list' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">{% trans "Budgets" %}</a>
-                        <a href="{% url 'ledger:detail_reports' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">{% trans "Detail Reports" %}</a>
+                        <a href="{% url 'ledger:budget_list' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">{% trans "Budget Set" %}</a>
+                    </div>
+                </details>
+
+                <details class="relative">
+                    <summary class="cursor-pointer hover:underline select-none">{% trans "Settings" %} ▾</summary>
+                    <div class="absolute right-0 mt-2 w-56 bg-white text-slate-800 rounded shadow-lg py-2 z-20">
                         <a href="{% url 'ledger:manage_settings' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">{% trans "Manage Categories" %}</a>
-                        <a href="{% url 'accounts:profile' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">{% trans "My Profile" %}</a>
                         <a href="{% url 'accounts:notification_preference' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">{% trans "Notification Preferences" %}</a>
                         <a href="{% url 'accounts:change_password' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">{% trans "Change Password" %}</a>
+                        <a href="{% url 'accounts:profile' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">{% trans "My Profile" %}</a>
                     </div>
                 </details>
 
                 {% if user.role == 'SUPER_ADMIN' %}
                 <details class="relative">
                     <summary class="cursor-pointer hover:underline select-none text-amber-300">{% trans "Admin Works" %} ▾</summary>
-                    <div class="absolute right-0 mt-2 w-48 bg-white text-slate-800 rounded shadow-lg py-2 z-20">
+                    <div class="absolute right-0 mt-2 w-52 bg-white text-slate-800 rounded shadow-lg py-2 z-20">
                         <a href="{% url 'accounts:user_approvals' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">{% trans "Approvals" %}</a>
-                        <a href="{% url 'accounts:preference_approvals' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">{% trans "Notification Requests" %}</a>
-                        <a href="{% url 'accounts:audit_log' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">{% trans "Audit Log" %}</a>
-                        <a href="{% url 'accounts:user_activity' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">{% trans "Activity" %}</a>
                         <a href="{% url 'accounts:user_list' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">{% trans "User" %}</a>
+                        <a href="{% url 'accounts:user_activity' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">{% trans "Activity" %}</a>
+                        <a href="{% url 'accounts:preference_approvals' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">{% trans "Notification Requests" %}</a>
                         <a href="{% url 'accounts:notification_settings' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">{% trans "Notification Settings" %}</a>
+                        <a href="{% url 'accounts:audit_log' %}" class="block px-4 py-2 text-sm hover:bg-gray-100">{% trans "Audit Log" %}</a>
                     </div>
                 </details>
                 {% endif %}
@@ -102,29 +114,35 @@
         <div id="mobileMenu" class="hidden md:hidden max-w-7xl mx-auto flex flex-col gap-3 mt-3 text-sm pb-3 border-t border-slate-700 pt-3">
             <a href="{% url 'ledger:add_transaction' %}" class="bg-emerald-600 hover:bg-emerald-700 px-3 py-2 rounded font-medium text-center">+ {% trans "Add Transaction" %}</a>
             <a href="{% url 'ledger:dashboard' %}" class="hover:underline">{% trans "Dashboard" %}</a>
-            <a href="{% url 'ledger:transaction_list' %}" class="hover:underline">{% trans "All Transactions" %}</a>
 
             <details>
-                <summary class="cursor-pointer hover:underline">{% trans "Savings" %}</summary>
+                <summary class="cursor-pointer hover:underline">{% trans "Savings/Borrow" %}</summary>
                 <div class="pl-4 flex flex-col gap-2 mt-2">
-                    <a href="{% url 'ledger:savings_list' %}" class="hover:underline">{% trans "Savings" %}</a>
-                    <a href="{% url 'ledger:loan_list' %}" class="hover:underline">{% trans "Loans / Borrowing" %}</a>
+                    <a href="{% url 'ledger:savings_list' %}" class="hover:underline">{% trans "Savings/Withdrawal" %}</a>
+                    <a href="{% url 'ledger:loan_list' %}" class="hover:underline">{% trans "Loans/Borrowing/Repayment" %}</a>
                 </div>
             </details>
 
-            <a href="{% url 'ledger:reports' %}" class="hover:underline">{% trans "Reports" %}</a>
+            <a href="{% url 'ledger:transaction_list' %}" class="hover:underline">{% trans "All Transactions" %}</a>
 
             <details>
-                <summary class="cursor-pointer hover:underline">{% trans "Others" %}</summary>
+                <summary class="cursor-pointer hover:underline">{% trans "Reports" %}</summary>
                 <div class="pl-4 flex flex-col gap-2 mt-2">
+                    <a href="{% url 'ledger:reports' %}" class="hover:underline">{% trans "Short Report" %}</a>
+                    <a href="{% url 'ledger:detail_reports' %}" class="hover:underline">{% trans "Detail Reports" %}</a>
                     <a href="{% url 'ledger:calendar' %}" class="hover:underline">{% trans "Calendar" %}</a>
                     <a href="{% url 'ledger:spreadsheet' %}" class="hover:underline">{% trans "Spreadsheet" %}</a>
-                    <a href="{% url 'ledger:budget_list' %}" class="hover:underline">{% trans "Budgets" %}</a>
-                    <a href="{% url 'ledger:detail_reports' %}" class="hover:underline">{% trans "Detail Reports" %}</a>
+                    <a href="{% url 'ledger:budget_list' %}" class="hover:underline">{% trans "Budget Set" %}</a>
+                </div>
+            </details>
+
+            <details>
+                <summary class="cursor-pointer hover:underline">{% trans "Settings" %}</summary>
+                <div class="pl-4 flex flex-col gap-2 mt-2">
                     <a href="{% url 'ledger:manage_settings' %}" class="hover:underline">{% trans "Manage Categories" %}</a>
-                    <a href="{% url 'accounts:profile' %}" class="hover:underline">{% trans "My Profile" %}</a>
                     <a href="{% url 'accounts:notification_preference' %}" class="hover:underline">{% trans "Notification Preferences" %}</a>
                     <a href="{% url 'accounts:change_password' %}" class="hover:underline">{% trans "Change Password" %}</a>
+                    <a href="{% url 'accounts:profile' %}" class="hover:underline">{% trans "My Profile" %}</a>
                 </div>
             </details>
 
@@ -133,11 +151,11 @@
                 <summary class="cursor-pointer hover:underline text-amber-300">{% trans "Admin Works" %}</summary>
                 <div class="pl-4 flex flex-col gap-2 mt-2">
                     <a href="{% url 'accounts:user_approvals' %}" class="hover:underline">{% trans "Approvals" %}</a>
-                    <a href="{% url 'accounts:preference_approvals' %}" class="hover:underline">{% trans "Notification Requests" %}</a>
-                    <a href="{% url 'accounts:audit_log' %}" class="hover:underline">{% trans "Audit Log" %}</a>
-                    <a href="{% url 'accounts:user_activity' %}" class="hover:underline">{% trans "Activity" %}</a>
                     <a href="{% url 'accounts:user_list' %}" class="hover:underline">{% trans "User" %}</a>
+                    <a href="{% url 'accounts:user_activity' %}" class="hover:underline">{% trans "Activity" %}</a>
+                    <a href="{% url 'accounts:preference_approvals' %}" class="hover:underline">{% trans "Notification Requests" %}</a>
                     <a href="{% url 'accounts:notification_settings' %}" class="hover:underline">{% trans "Notification Settings" %}</a>
+                    <a href="{% url 'accounts:audit_log' %}" class="hover:underline">{% trans "Audit Log" %}</a>
                 </div>
             </details>
             {% endif %}
@@ -191,6 +209,23 @@
             </p>
         </div>
     </footer>
+
+    <script>
+        (function() {
+            function pad(n) { return String(n).padStart(2, '0'); }
+            var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            function updateNavClock() {
+                var timeEl = document.getElementById('navClockTime');
+                var dateEl = document.getElementById('navClockDate');
+                if (!timeEl || !dateEl) return;
+                var now = new Date();
+                timeEl.textContent = pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds());
+                dateEl.textContent = pad(now.getDate()) + '-' + MONTHS[now.getMonth()] + '-' + now.getFullYear();
+            }
+            updateNavClock();
+            setInterval(updateNavClock, 1000);
+        })();
+    </script>
 </body>
 </html>
 

@@ -38,3 +38,9 @@ dailyledger-apk/local.properties
 .vscode/
 .idea/
 *.patch
+
+# One-off deploy/patch scripts (not part of the app)
+deploy_patch_*.sh
+bulk_add_transactions*.py
+check_*_pref.py
+diagnose_*.py
