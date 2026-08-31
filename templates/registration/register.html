@@ -10,6 +10,17 @@
         <div class="mb-4">
             <label class="block text-sm font-medium mb-1">{{ field.label }}</label>
             {{ field }}
+            {% if field.name == 'password1' %}
+            <ul id="pwChecklist" class="mt-2 space-y-0.5 text-xs">
+                <li id="pwCheckLength" class="text-gray-400">○ {% trans "At least 8 characters" %}</li>
+                <li id="pwCheckNumeric" class="text-gray-400">○ {% trans "Not entirely numbers" %}</li>
+                <li class="text-gray-400">○ {% trans "Not a commonly used password" %}</li>
+                <li class="text-gray-400">○ {% trans "Not too similar to your name or email" %}</li>
+            </ul>
+            {% endif %}
+            {% if field.name == 'password2' %}
+            <p id="pwCheckMatch" class="mt-2 text-xs text-gray-400">○ {% trans "Passwords match" %}</p>
+            {% endif %}
             {% if field.errors %}
                 <p class="text-red-600 text-sm mt-1">{{ field.errors|striptags }}</p>
             {% endif %}
@@ -23,4 +34,34 @@
         {% trans "Already have an account?" %} <a href="{% url 'login' %}" class="text-emerald-600 hover:underline">{% trans "Log in" %}</a>
     </p>
 </div>
+<script>
+(function() {
+    function mark(el, ok) {
+        if (!el) return;
+        el.textContent = (ok ? '✓ ' : '○ ') + el.textContent.replace(/^[✓○]\s*/, '');
+        el.className = 'mt-2 text-xs ' + (ok ? 'text-emerald-600' : 'text-gray-400');
+    }
+    function markLi(el, ok) {
+        if (!el) return;
+        el.textContent = (ok ? '✓ ' : '○ ') + el.textContent.replace(/^[✓○]\s*/, '');
+        el.className = ok ? 'text-emerald-600' : 'text-gray-400';
+    }
+    var p1 = document.getElementById('id_password1');
+    var p2 = document.getElementById('id_password2');
+    var lenEl = document.getElementById('pwCheckLength');
+    var numEl = document.getElementById('pwCheckNumeric');
+    var matchEl = document.getElementById('pwCheckMatch');
+
+    function update() {
+        var v1 = p1 ? p1.value : '';
+        var v2 = p2 ? p2.value : '';
+        markLi(lenEl, v1.length >= 8);
+        markLi(numEl, v1.length > 0 && !/^\d+$/.test(v1));
+        mark(matchEl, v1.length > 0 && v1 === v2);
+    }
+    if (p1) p1.addEventListener('input', update);
+    if (p2) p2.addEventListener('input', update);
+    update();
+})();
+</script>
 {% endblock %}

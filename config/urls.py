@@ -9,6 +9,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('i18n/', include('django.conf.urls.i18n')),
     path('login/', account_views.login_view, name='login'),
+    path('forgot-password/', account_views.forgot_password, name='forgot_password'),
     path('logout/', account_views.logout_view, name='logout'),
     path('register/', account_views.register, name='register'),
     path('about/', ledger_views.about, name='about'),

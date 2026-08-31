@@ -5,6 +5,13 @@ from django.utils.translation import gettext_lazy as _
 from .models import CustomUser, SummaryFrequency
 
 
+class ForgotPasswordForm(forms.Form):
+    email = forms.EmailField(
+        label=_('Email Address'),
+        widget=forms.EmailInput(attrs={'class': 'border rounded px-3 py-2 w-full', 'autofocus': True}),
+    )
+
+
 class RegistrationForm(forms.ModelForm):
     password1 = forms.CharField(
         label=_('Password'),

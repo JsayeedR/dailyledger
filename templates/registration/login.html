@@ -26,6 +26,9 @@
         <div class="mb-4">
             <label class="block text-xs font-semibold uppercase text-gray-500 mb-1">{% trans "Password" %}</label>
             <input type="password" name="password" required class="border rounded px-3 py-2 w-full">
+            <p class="text-right mt-1">
+                <a href="{% url 'forgot_password' %}" class="text-xs text-emerald-600 hover:underline">{% trans "Forgot password?" %}</a>
+            </p>
         </div>
         <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white w-full py-2 rounded font-medium">
             {% trans "Sign In" %}

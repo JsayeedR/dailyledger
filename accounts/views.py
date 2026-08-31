@@ -1,3 +1,5 @@
+import secrets
+import string
 from datetime import timedelta
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
@@ -6,7 +8,7 @@ from django.utils.translation import gettext as _
 from django.contrib.auth import login as auth_login, logout as auth_logout, update_session_auth_hash, get_user_model
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.utils import timezone
-from .forms import RegistrationForm, StyledPasswordChangeForm as PasswordChangeForm, ProfileForm, NotificationPreferenceForm
+from .forms import RegistrationForm, StyledPasswordChangeForm as PasswordChangeForm, ProfileForm, NotificationPreferenceForm, ForgotPasswordForm
 from .models import (
     CustomUser, AuditLog, ApprovalStatus, NotificationSettings,
     NotificationPreference, PreferenceReviewStatus,
@@ -42,6 +44,14 @@ def login_view(request):
             elif not user_obj.is_active:
                 audit.log(actor=user_obj, action='LOGIN_FAILED', detail='Account deactivated', request=request)
                 error = 'This account has been deactivated. Please contact your administrator.'
+            elif user_obj.temp_password_expires_at and timezone.now() > user_obj.temp_password_expires_at:
+                audit.log(actor=user_obj, action='LOGIN_FAILED', detail='Temporary password expired', request=request)
+                error = 'This temporary password has expired. Please request a new one.'
+            elif user_obj.temp_password_expires_at:
+                auth_login(request, user_obj)
+                audit.log(actor=user_obj, action='LOGIN', detail='Logged in with temporary password', request=request)
+                messages.info(request, _('You logged in with a temporary password. Please set a new password to continue.'))
+                return redirect('accounts:change_password')
             else:
                 auth_login(request, user_obj)
                 audit.log(actor=user_obj, action='LOGIN', request=request)
@@ -59,6 +69,60 @@ def logout_view(request):
         audit.log(actor=request.user, action='LOGOUT', request=request)
     auth_logout(request)
     return redirect('login')
+
+
+def _generate_temp_password():
+    alphabet = string.ascii_letters + string.digits
+    return ''.join(secrets.choice(alphabet) for _ in range(10))
+
+
+def forgot_password(request):
+    """Issues a temporary password valid for 5 minutes, emailed to the
+    account's address if it matches an approved, active account. Always
+    shows the same confirmation regardless of whether the email matched --
+    this deliberately never reveals whether an account exists."""
+    if request.user.is_authenticated:
+        return redirect('ledger:dashboard')
+
+    if request.method == 'POST':
+        form = ForgotPasswordForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['email'].strip().lower()
+            user_obj = User.objects.filter(email=email).first()
+
+            if user_obj and user_obj.approval_status == ApprovalStatus.APPROVED and user_obj.is_active:
+                cooldown_ok = True
+                if user_obj.last_password_reset_request_at:
+                    elapsed = (timezone.now() - user_obj.last_password_reset_request_at).total_seconds()
+                    cooldown_ok = elapsed >= 60
+
+                if cooldown_ok:
+                    temp_password = _generate_temp_password()
+                    user_obj.set_password(temp_password)
+                    user_obj.temp_password_expires_at = timezone.now() + timedelta(minutes=5)
+                    user_obj.last_password_reset_request_at = timezone.now()
+                    user_obj.save()
+
+                    settings_obj = NotificationSettings.get_solo()
+                    subject = 'Your DailyLedger temporary password'
+                    body = (
+                        f'Hi {user_obj.display_name},\n\n'
+                        f'A temporary password was requested for your DailyLedger account ({user_obj.email}).\n\n'
+                        f'Temporary password: {temp_password}\n\n'
+                        f'This is valid for 5 minutes only. Log in with it right away -- you will be '
+                        f'asked to set a new password immediately after.\n\n'
+                        f"If you didn't request this, you can ignore this email. Your current password "
+                        f'has already been replaced by this temporary one, so if this wasn\'t you, log '
+                        f'in now with the temporary password above and set a new password right away.'
+                    )
+                    notifications.send_email(settings_obj, user_obj.email, subject, body, actor=user_obj)
+                    audit.log(actor=user_obj, action='PASSWORD_RESET_REQUESTED', request=request)
+
+            return render(request, 'registration/forgot_password_sent.html', {'email': email})
+    else:
+        form = ForgotPasswordForm()
+
+    return render(request, 'registration/forgot_password.html', {'form': form})
 
 
 def register(request):
@@ -149,6 +213,9 @@ def change_password(request):
         if form.is_valid():
             user = form.save()
             update_session_auth_hash(request, user)
+            if user.temp_password_expires_at:
+                user.temp_password_expires_at = None
+                user.save(update_fields=['temp_password_expires_at'])
             audit.log(actor=user, action='PASSWORD_CHANGE', request=request)
             messages.success(request, _('Your password has been changed.'))
             return redirect('ledger:dashboard')

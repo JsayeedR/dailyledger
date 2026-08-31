@@ -59,6 +59,9 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     total_active_seconds = models.PositiveIntegerField(default=0)
     session_count = models.PositiveIntegerField(default=0)
 
+    temp_password_expires_at = models.DateTimeField(null=True, blank=True, help_text="Set when a temporary password is issued via Forgot Password; cleared once the user sets a real password.")
+    last_password_reset_request_at = models.DateTimeField(null=True, blank=True)
+
     objects = CustomUserManager()
 
     USERNAME_FIELD = 'email'
