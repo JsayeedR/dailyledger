@@ -102,7 +102,7 @@ class Command(BaseCommand):
 
         # ---- 6. Notify Super Admins ----
         if not options['skip_notify']:
-            self._notify_admins(db_result, project_result, errors, timestamp)
+            self._notify_admins(db_result, project_result, errors, timestamp, db_path, project_path)
 
         if errors:
             audit.log(
@@ -213,7 +213,7 @@ class Command(BaseCommand):
                     removed += 1
         return removed
 
-    def _notify_admins(self, db_result, project_result, errors, timestamp):
+    def _notify_admins(self, db_result, project_result, errors, timestamp, db_path=None, project_path=None):
         settings_obj = NotificationSettings.get_solo()
         admins = CustomUser.objects.filter(role=Role.SUPER_ADMIN, is_active=True)
 
@@ -235,6 +235,23 @@ class Command(BaseCommand):
                 lines.append(f"  - {e}")
         lines.append("")
         lines.append(f"Backups older than {RETENTION_DAYS} days are automatically removed (local + offsite).")
+
+        # Attach both backup files directly to the email, unless they're too
+        # large combined (most SMTP relays cap around 20-25 MB per message) --
+        # in that case skip attaching but say so, rather than silently
+        # failing to send the notification at all.
+        attachments = [p for p in (db_path, project_path) if p and p.exists()]
+        MAX_ATTACHMENT_BYTES = 20 * 1024 * 1024  # 20 MB combined
+        total_size = sum(p.stat().st_size for p in attachments)
+        if attachments and total_size > MAX_ATTACHMENT_BYTES:
+            lines.append("")
+            lines.append(
+                f"(Backup files totalling {total_size / (1024 * 1024):.1f} MB were NOT attached -- "
+                f"over the {MAX_ATTACHMENT_BYTES // (1024 * 1024)} MB email limit. "
+                f"They're still saved locally and offsite as usual.)"
+            )
+            attachments = []
+
         body = "\n".join(lines)
 
         telegram_text = f"{'✅' if success else '❌'} " + subject + "\n\n" + "\n".join(
@@ -243,7 +260,7 @@ class Command(BaseCommand):
 
         for admin in admins:
             if admin.email:
-                ok, detail = notifications.send_email(settings_obj, admin.email, subject, body)
+                ok, detail = notifications.send_email(settings_obj, admin.email, subject, body, attachments=attachments)
                 if not ok:
                     self.stderr.write(f"Admin email notify failed for {admin.email}: {detail}")
             if admin.telegram_id:

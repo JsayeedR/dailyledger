@@ -23,7 +23,8 @@ def notify_super_admins(subject, email_body, telegram_text=None, actor=None):
             send_telegram(settings_obj, admin.telegram_id, telegram_text or email_body, actor=actor)
 
 
-def send_email(settings_obj, to_email, subject, body, actor=None):
+def send_email(settings_obj, to_email, subject, body, actor=None, attachments=None):
+    """attachments: optional list of file paths (str or Path) to attach."""
     if not settings_obj.is_email_configured():
         audit.log(
             actor=actor,
@@ -51,6 +52,8 @@ def send_email(settings_obj, to_email, subject, body, actor=None):
             connection=connection,
             reply_to=[reply_to],
         )
+        for path in (attachments or []):
+            msg.attach_file(str(path))
         msg.send()
 
         audit.log(
